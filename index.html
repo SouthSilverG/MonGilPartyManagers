@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>몬길 스타다이브 파티 에디터</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <header class="toolbar">
+    <div class="brand">
+      <span class="brand__mark">MG</span>
+      <div class="brand__text">
+        <span class="brand__title">몬길 스타다이브</span>
+        <span class="brand__subtitle">파티 에디터</span>
+      </div>
+    </div>
+    <button id="btnSavePng" class="btn-save-png">
+      <span class="btn-save-png__icon">⬇</span>
+      저장 (PNG)
+    </button>
+  </header>
+
+  <main id="captureArea" class="board">
+    <div id="slots" class="slots"></div>
+
+    <section class="remarks">
+      <label for="remarksText" class="remarks__label">비고란</label>
+      <textarea id="remarksText" class="remarks__textarea" placeholder="파티에 대한 설명이나 메모를 자유롭게 작성하세요."></textarea>
+    </section>
+
+    <footer class="site-footer">
+      <p class="site-footer__line">본 페이지는 팬이 제작한 비공식 페이지이며, 모든 이미지·데이터 및 상표의 권리는 각 권리자에게 있습니다.</p>
+      <p class="site-footer__line">© Netmarble Corp. &amp; Netmarble Monster Inc. All Rights Reserved.</p>
+    </footer>
+  </main>
+
+  <!-- 개발자 블로그 바로가기 (플로팅 버튼) -->
+  <a
+    href="https://blog.naver.com/haryungame"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="dev-blog-fab"
+  >
+    <span class="dev-blog-fab__icon">✎</span>
+    <span class="dev-blog-fab__text">개발자 블로그</span>
+  </a>
+
+  <!-- 선택 팝업 (캐릭터 / 장비 / 몬스터링 옵션 공용) -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal__header">
+        <h2 id="modalTitle">선택</h2>
+        <button id="modalClose" class="modal__close" aria-label="닫기">✕</button>
+      </div>
+      <input id="modalSearch" class="modal__search" type="text" placeholder="검색..." />
+      <div id="modalList" class="modal__list"></div>
+    </div>
+  </div>
+
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

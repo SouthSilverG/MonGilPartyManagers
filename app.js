@@ -1,0 +1,401 @@
+/* =====================================================================
+   app.js — 화면을 그리고 클릭 동작을 처리합니다.
+   보통은 이 파일을 건드릴 필요가 없습니다. 데이터만 바꾸려면 data.js를 수정하세요.
+   ===================================================================== */
+
+const RING_KEYS = Object.keys(RING_LABELS);
+const EQUIP_KEYS = Object.keys(EQUIPMENT_LABELS);
+
+/* 장비 부위별 포인트 색상 (라벨 앞 작은 점 표시용, 순수 UI 장식) */
+const EQUIP_COLORS = {
+  hat: "#5b9dff",
+  top: "#f5a742",
+  gloves: "#ef5d7a",
+  shoes: "#3ecf8e",
+};
+
+/* ---------- 상태 ---------- */
+function createEmptySlot() {
+  const rings = {};
+  const ringMonsters = {};
+  RING_KEYS.forEach((k) => {
+    rings[k] = [null, null, null, null];
+    ringMonsters[k] = null;
+  });
+  const equipment = {};
+  EQUIP_KEYS.forEach((k) => (equipment[k] = null));
+  return { character: null, equipment, rings, ringMonsters };
+}
+
+const state = {
+  slots: Array.from({ length: SLOT_COUNT }, createEmptySlot),
+};
+
+/* ---------- 유틸 ---------- */
+function findById(list, id) {
+  return list.find((it) => it.id === id) || null;
+}
+
+function imgOrPlaceholder(src) {
+  return src && src.trim() !== "" ? src : "assets/placeholder.svg";
+}
+
+/* ---------- 렌더링 ---------- */
+const slotsEl = document.getElementById("slots");
+
+function render() {
+  slotsEl.innerHTML = "";
+  state.slots.forEach((slot, slotIndex) => {
+    slotsEl.appendChild(renderSlot(slot, slotIndex));
+  });
+}
+
+function renderSlot(slot, slotIndex) {
+  const col = document.createElement("div");
+  col.className = "slot";
+  col.dataset.slotIndex = String(slotIndex);
+
+  // 헤더
+  const header = document.createElement("div");
+  header.className = "slot__header";
+  header.textContent = `${slotIndex + 1}번 슬롯`;
+  col.appendChild(header);
+
+  // 캐릭터 카드
+  const charCard = document.createElement("div");
+  charCard.className = "char-card";
+
+  const charBtn = document.createElement("button");
+  charBtn.className = "char-card__button";
+  charBtn.dataset.action = "character";
+  charBtn.dataset.slotIndex = String(slotIndex);
+
+  const charData = slot.character ? findById(CHARACTERS, slot.character) : null;
+  if (charData) {
+    const img = document.createElement("img");
+    img.src = imgOrPlaceholder(charData.image);
+    img.alt = charData.name;
+    charBtn.appendChild(img);
+  } else {
+    charBtn.classList.add("char-card__button--empty");
+    const plus = document.createElement("span");
+    plus.className = "placeholder-plus";
+    plus.textContent = "+";
+    charBtn.appendChild(plus);
+    const hint = document.createElement("span");
+    hint.className = "placeholder-hint";
+    hint.textContent = "캐릭터 선택";
+    charBtn.appendChild(hint);
+  }
+  charCard.appendChild(charBtn);
+
+  const charName = document.createElement("div");
+  charName.className = "char-card__name";
+  charName.textContent = charData ? charData.name : "캐릭터를 선택하세요";
+  charCard.appendChild(charName);
+
+  col.appendChild(charCard);
+
+  // 몬스터링
+  const ringsWrap = document.createElement("div");
+  ringsWrap.className = "rings";
+
+  RING_KEYS.forEach((ringKey) => {
+    const row = document.createElement("div");
+    row.className = "ring-row" + (ringKey === LINK_CHAIN_RING ? " ring-row--linkchain" : "");
+
+    const monsterId = slot.ringMonsters[ringKey];
+    const monster = monsterId ? findById(MONSTERS, monsterId) : null;
+
+    const monsterBtn = document.createElement("button");
+    monsterBtn.className =
+      "ring-row__label" + (monster ? " ring-row__label--filled" : " ring-row__label--empty");
+    monsterBtn.dataset.action = "ring-monster";
+    monsterBtn.dataset.slotIndex = String(slotIndex);
+    monsterBtn.dataset.ring = ringKey;
+
+    if (ringKey === LINK_CHAIN_RING) {
+      const badge = document.createElement("span");
+      badge.className = "badge-linkchain";
+      badge.textContent = "링크체인";
+      monsterBtn.appendChild(badge);
+    }
+
+    if (monster) {
+      // 선택된 상태: 링 번호 텍스트 대신 몬스터 아이콘 + 이름을 보여줍니다.
+      const iconEl = document.createElement("img");
+      iconEl.className = "ring-row__monster-icon";
+      iconEl.src = imgOrPlaceholder(monster.image);
+      iconEl.alt = monster.name;
+      monsterBtn.appendChild(iconEl);
+
+      const monsterNameEl = document.createElement("span");
+      monsterNameEl.className = "ring-row__monster-name";
+      monsterNameEl.textContent = monster.name;
+      monsterBtn.appendChild(monsterNameEl);
+    } else {
+      // 선택 전: 몇 번째 몬스터링인지 + 선택 안내 문구를 보여줍니다.
+      const ringNameEl = document.createElement("span");
+      ringNameEl.className = "ring-row__ring-name";
+      ringNameEl.textContent = RING_LABELS[ringKey];
+      monsterBtn.appendChild(ringNameEl);
+
+      const monsterNameEl = document.createElement("span");
+      monsterNameEl.className = "ring-row__monster-name ring-row__monster-name--placeholder";
+      monsterNameEl.textContent = "몬스터링 선택 +";
+      monsterBtn.appendChild(monsterNameEl);
+    }
+
+    row.appendChild(monsterBtn);
+
+    slot.rings[ringKey].forEach((optId, optIndex) => {
+      const cell = document.createElement("div");
+      cell.className = "ring-slot" + (optId ? " filled" : "");
+      cell.dataset.action = "ring";
+      cell.dataset.slotIndex = String(slotIndex);
+      cell.dataset.ring = ringKey;
+      cell.dataset.optIndex = String(optIndex);
+
+      const opt = optId ? findById(RING_OPTIONS[ringKey], optId) : null;
+
+      if (!opt) {
+        // 선택 전에만 "옵션1/2/3/4" 라벨을 보여주고, 선택되면 숨깁니다.
+        const slotLabelEl = document.createElement("span");
+        slotLabelEl.className = "ring-slot__label";
+        slotLabelEl.textContent = `옵션${optIndex + 1}`;
+        cell.appendChild(slotLabelEl);
+      }
+
+      const slotValueEl = document.createElement("span");
+      slotValueEl.className = "ring-slot__value";
+      slotValueEl.textContent = opt ? opt.name : "선택 +";
+      cell.appendChild(slotValueEl);
+
+      row.appendChild(cell);
+    });
+
+    ringsWrap.appendChild(row);
+  });
+
+  col.appendChild(ringsWrap);
+
+  // 장비
+  const equipGrid = document.createElement("div");
+  equipGrid.className = "equip-grid";
+
+  EQUIP_KEYS.forEach((equipKey) => {
+    const itemId = slot.equipment[equipKey];
+    const item = itemId ? findById(EQUIPMENT[equipKey], itemId) : null;
+
+    const cell = document.createElement("div");
+    cell.className = "equip-slot" + (item ? "" : " equip-slot--empty");
+    cell.dataset.action = "equip";
+    cell.dataset.slotIndex = String(slotIndex);
+    cell.dataset.equip = equipKey;
+
+    const labelEl = document.createElement("div");
+    labelEl.className = "equip-slot__label";
+
+    const dot = document.createElement("span");
+    dot.className = "equip-slot__dot";
+    dot.style.background = EQUIP_COLORS[equipKey];
+    labelEl.appendChild(dot);
+
+    labelEl.appendChild(document.createTextNode(EQUIPMENT_LABELS[equipKey]));
+    cell.appendChild(labelEl);
+
+    if (item) {
+      const img = document.createElement("img");
+      img.src = imgOrPlaceholder(item.image);
+      img.alt = item.name;
+      cell.appendChild(img);
+
+      const valueEl = document.createElement("div");
+      valueEl.className = "equip-slot__value";
+      valueEl.textContent = item.name;
+      cell.appendChild(valueEl);
+    } else {
+      const valueEl = document.createElement("div");
+      valueEl.className = "equip-slot__value";
+      valueEl.textContent = "+";
+      cell.appendChild(valueEl);
+    }
+
+    equipGrid.appendChild(cell);
+  });
+
+  col.appendChild(equipGrid);
+
+  return col;
+}
+
+/* ---------- 모달(팝업 선택창) ---------- */
+const modalOverlay = document.getElementById("modalOverlay");
+const modalTitle = document.getElementById("modalTitle");
+const modalList = document.getElementById("modalList");
+const modalSearch = document.getElementById("modalSearch");
+const modalClose = document.getElementById("modalClose");
+
+let modalContext = null; // { type, slotIndex, equipKey?, ringKey?, optIndex?, items, onSelect }
+
+function openModal({ title, items, onSelect }) {
+  modalContext = { items, onSelect };
+  modalTitle.textContent = title;
+  modalSearch.value = "";
+  renderModalList(items);
+  modalOverlay.classList.remove("hidden");
+  modalSearch.focus();
+}
+
+function closeModal() {
+  modalOverlay.classList.add("hidden");
+  modalContext = null;
+}
+
+function renderModalList(items) {
+  modalList.innerHTML = "";
+
+  const clearItem = document.createElement("div");
+  clearItem.className = "modal__item modal__item--clear";
+  clearItem.textContent = "선택 해제";
+  clearItem.addEventListener("click", () => {
+    modalContext.onSelect(null);
+    closeModal();
+    render();
+  });
+  modalList.appendChild(clearItem);
+
+  items.forEach((item) => {
+    const el = document.createElement("div");
+    el.className = "modal__item";
+
+    if (item.image) {
+      const img = document.createElement("img");
+      img.src = imgOrPlaceholder(item.image);
+      img.alt = item.name;
+      el.appendChild(img);
+    }
+
+    const nameEl = document.createElement("div");
+    nameEl.textContent = item.name;
+    el.appendChild(nameEl);
+
+    el.addEventListener("click", () => {
+      modalContext.onSelect(item.id);
+      closeModal();
+      render();
+    });
+
+    modalList.appendChild(el);
+  });
+}
+
+modalSearch.addEventListener("input", () => {
+  const q = modalSearch.value.trim().toLowerCase();
+  const filtered = modalContext.items.filter((it) =>
+    it.name.toLowerCase().includes(q)
+  );
+  renderModalList(filtered);
+});
+
+modalClose.addEventListener("click", closeModal);
+modalOverlay.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) closeModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !modalOverlay.classList.contains("hidden")) closeModal();
+});
+
+/* ---------- 클릭 위임 처리 ---------- */
+slotsEl.addEventListener("click", (e) => {
+  const target = e.target.closest("[data-action]");
+  if (!target) return;
+
+  const slotIndex = Number(target.dataset.slotIndex);
+  const action = target.dataset.action;
+  const slot = state.slots[slotIndex];
+
+  if (action === "character") {
+    openModal({
+      title: "캐릭터 선택",
+      items: CHARACTERS,
+      onSelect: (id) => (slot.character = id),
+    });
+  } else if (action === "equip") {
+    const equipKey = target.dataset.equip;
+    openModal({
+      title: EQUIPMENT_LABELS[equipKey] + " 선택",
+      items: EQUIPMENT[equipKey],
+      onSelect: (id) => (slot.equipment[equipKey] = id),
+    });
+  } else if (action === "ring") {
+    const ringKey = target.dataset.ring;
+    const optIndex = Number(target.dataset.optIndex);
+    openModal({
+      title: RING_LABELS[ringKey] + " - 옵션 선택",
+      items: RING_OPTIONS[ringKey],
+      onSelect: (id) => (slot.rings[ringKey][optIndex] = id),
+    });
+  } else if (action === "ring-monster") {
+    const ringKey = target.dataset.ring;
+    openModal({
+      title: RING_LABELS[ringKey] + " - 몬스터 선택",
+      items: MONSTERS,
+      onSelect: (id) => (slot.ringMonsters[ringKey] = id),
+    });
+  }
+});
+
+/* ---------- PNG로 저장 ---------- */
+document.getElementById("btnSavePng").addEventListener("click", () => {
+  // file:// 로 index.html을 직접 더블클릭해서 연 경우, 브라우저 보안 정책 때문에
+  // 캔버스가 "오염(tainted)"되어 이미지 저장이 조용히 실패할 수 있습니다.
+  // 이 경우 아래 에러가 나기 전에 미리 안내하고 중단합니다.
+  if (location.protocol === "file:") {
+    alert(
+      "이 화면을 파일로 직접 열면(주소창이 file:// 로 시작) 브라우저 보안 정책 때문에 PNG 저장이 되지 않습니다.\n\n" +
+        "아래 방법 중 하나로 실행해 주세요.\n" +
+        "1) GitHub Pages에 올려서 https:// 주소로 접속\n" +
+        "2) 로컬 서버로 실행 (예: 이 폴더에서 `python -m http.server` 실행 후 http://localhost:8000 접속)"
+    );
+    return;
+  }
+
+  const captureArea = document.getElementById("captureArea");
+  html2canvas(captureArea, { backgroundColor: "#101214", scale: 2, useCORS: true })
+    .then((canvas) => {
+      // toDataURL 대신 toBlob + objectURL을 사용합니다.
+      // 이렇게 해야 브라우저가 일반적인 "파일 다운로드"로 인식해서
+      // 기본 다운로드 폴더(예: 다운로드 폴더)로 저장해줍니다.
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          alert("PNG 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
+          return;
+        }
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.download = `몬길스타다이브_파티_${stamp}.png`;
+        link.href = url;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        // 다운로드가 시작된 뒤 메모리 정리를 위해 objectURL을 해제합니다.
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }, "image/png");
+    })
+    .catch((err) => {
+      console.error("PNG 저장 실패:", err);
+      alert(
+        "PNG 저장 중 문제가 발생했습니다.\n\n" +
+          (err && err.message ? err.message : err) +
+          "\n\n브라우저 콘솔(F12)에서 자세한 오류를 확인할 수 있습니다."
+      );
+    });
+});
+
+/* ---------- 초기 렌더 ---------- */
+render();
