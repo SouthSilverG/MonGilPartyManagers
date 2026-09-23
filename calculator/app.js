@@ -126,6 +126,7 @@ function buildComposeIcons(rewards) {
     badge.className = "reward-icon";
     badge.title = `${label} ${value.toLocaleString("ko-KR")}`;
     const img = document.createElement("img");
+    img.loading = "lazy";
     img.src = icon;
     img.alt = label;
     badge.appendChild(img);
@@ -143,6 +144,7 @@ function buildComposeIcons(rewards) {
     badge.title = choiceInfo ? choiceInfo.label : rewards.choice;
     if (choiceInfo) {
       const img = document.createElement("img");
+      img.loading = "lazy";
       img.src = choiceInfo.icon;
       img.alt = choiceInfo.label;
       badge.appendChild(img);

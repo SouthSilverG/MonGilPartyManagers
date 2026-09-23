@@ -73,6 +73,7 @@ function renderSlot(slot, slotIndex) {
   const charData = slot.character ? findById(CHARACTERS, slot.character) : null;
   if (charData) {
     const img = document.createElement("img");
+    img.loading = "lazy";
     img.src = imgOrPlaceholder(charData.image);
     img.alt = charData.name;
     charBtn.appendChild(img);
@@ -125,6 +126,7 @@ function renderSlot(slot, slotIndex) {
       // 선택된 상태: 링 번호 텍스트 대신 몬스터 아이콘 + 이름을 보여줍니다.
       const iconEl = document.createElement("img");
       iconEl.className = "ring-row__monster-icon";
+      iconEl.loading = "lazy";
       iconEl.src = imgOrPlaceholder(monster.image);
       iconEl.alt = monster.name;
       monsterBtn.appendChild(iconEl);
@@ -206,6 +208,7 @@ function renderSlot(slot, slotIndex) {
 
     if (item) {
       const img = document.createElement("img");
+      img.loading = "lazy";
       img.src = imgOrPlaceholder(item.image);
       img.alt = item.name;
       cell.appendChild(img);
@@ -271,6 +274,9 @@ function renderModalList(items) {
 
     if (item.image) {
       const img = document.createElement("img");
+      // 선택창을 열 때 목록에 있는 이미지를 한꺼번에 다 받지 않고,
+      // 스크롤해서 실제로 화면에 보일 때만 그때그때 받아오게 합니다(트래픽 절약).
+      img.loading = "lazy";
       img.src = imgOrPlaceholder(item.image);
       img.alt = item.name;
       el.appendChild(img);
