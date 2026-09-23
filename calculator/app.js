@@ -288,7 +288,37 @@ function updateTotal() {
 
 renderAll();
 
-/* ---------- PNG로 저장 ---------- */
+/* ---------- PNG로 저장 (체크한 상품만 출력) ---------- */
+
+function isRowChecked(row) {
+  const checkbox = row.querySelector(".buy-checkbox");
+  return checkbox ? checkbox.checked : false;
+}
+
+// PNG로 저장할 때는 구매 체크한 상품만 보이도록 나머지를 잠깐 숨겼다가(enable=true),
+// 캡처가 끝나면 다시 원래 화면으로 되돌립니다(enable=false).
+// 체크한 상품이 하나도 없는 섹션은 제목까지 통째로 숨깁니다.
+function setPngCheckedOnlyMode(enable) {
+  const sections = document.querySelectorAll("#sections .product-section");
+  sections.forEach((sectionEl) => {
+    const rows = Array.from(sectionEl.querySelectorAll(".product-row")).filter(
+      (row) => !row.classList.contains("product-row--head")
+    );
+    let anyVisible = false;
+    rows.forEach((row) => {
+      if (!enable) {
+        row.style.display = "";
+        anyVisible = true;
+        return;
+      }
+      const show = isRowChecked(row);
+      row.style.display = show ? "" : "none";
+      if (show) anyVisible = true;
+    });
+    sectionEl.style.display = enable && !anyVisible ? "none" : "";
+  });
+}
+
 document.getElementById("btnSavePng").addEventListener("click", () => {
   // file:// 로 index.html을 직접 더블클릭해서 연 경우, 브라우저 보안 정책 때문에
   // 캔버스가 "오염(tainted)"되어 이미지 저장이 조용히 실패할 수 있습니다.
@@ -312,8 +342,17 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
     /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPadOS는 Mac으로 위장함
 
+  // 체크(구매 예정)한 상품이 하나도 없으면 빈 이미지가 나오므로 미리 안내하고 중단합니다.
+  const hasChecked = Array.from(purchaseState.values()).some(Boolean);
+  if (!hasChecked) {
+    alert("먼저 저장하고 싶은 상품에 체크해주세요.\n체크한 상품만 PNG에 표시됩니다.");
+    return;
+  }
+
   // 파티 매니저 탭과 마찬가지로, 사이드바를 뺀 이 페이지의 콘텐츠 영역(#captureArea)만 캡처합니다.
+  // 이때 체크하지 않은 상품/섹션은 잠깐 숨기고, 체크한 상품만 캡처되도록 합니다.
   const captureArea = document.getElementById("captureArea");
+  setPngCheckedOnlyMode(true);
   html2canvas(captureArea, { backgroundColor: "#0a0b10", scale: 2, useCORS: true })
     .then((canvas) => {
       // toDataURL 대신 toBlob + objectURL을 사용합니다.
@@ -388,6 +427,10 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
           (err && err.message ? err.message : err) +
           "\n\n브라우저 콘솔(F12)에서 자세한 오류를 확인할 수 있습니다."
       );
+    })
+    .finally(() => {
+      // 캡처 성공/실패 여부와 상관없이 화면은 항상 원래 상태(전체 보기)로 되돌립니다.
+      setPngCheckedOnlyMode(false);
     });
 });
 
