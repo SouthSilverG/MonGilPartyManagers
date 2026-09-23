@@ -361,6 +361,15 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
     return;
   }
 
+  // 모바일 브라우저(특히 iOS Safari)는 <a download> + blob 방식을
+  // PC와 똑같이 처리해주지 않는 경우가 많습니다(다운로드 대신 그냥 열리거나
+  // 아무 반응이 없을 수 있음). 그래서 모바일에서는 기기의 "공유하기" 창을 띄워
+  // 거기서 "이미지 저장"을 누르면 실제 파일로 저장되게 합니다 — 이게 모바일 웹에서
+  // PC의 자동 다운로드와 가장 비슷한 결과(진짜 파일이 기기에 저장됨)를 냅니다.
+  const isMobile =
+    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPadOS는 Mac으로 위장함
+
   const captureArea = document.getElementById("captureArea");
   html2canvas(captureArea, { backgroundColor: "#101214", scale: 2, useCORS: true })
     .then((canvas) => {
@@ -375,16 +384,58 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+        const filename = `몬길스타다이브_파티_${stamp}.png`;
 
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.download = `몬길스타다이브_파티_${stamp}.png`;
-        link.href = url;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        // 다운로드가 시작된 뒤 메모리 정리를 위해 objectURL을 해제합니다.
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        const downloadViaAnchor = (showFallbackPreview) => {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement("a");
+          link.download = filename;
+          link.href = url;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+
+          if (showFallbackPreview) {
+            // 자동 다운로드가 안 되는 구형/특수 모바일 브라우저를 위한 예비 수단으로
+            // 미리보기 창을 띄워 둡니다(길게 눌러 저장 가능).
+            showPngPreview(url, filename);
+          } else {
+            // PC에서는 기존과 동일하게 조용히 다운로드만 하고, 메모리 정리를 위해
+            // 잠시 후 objectURL을 해제합니다.
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          }
+        };
+
+        const canUseShare =
+          isMobile &&
+          typeof navigator.share === "function" &&
+          typeof navigator.canShare === "function";
+
+        let sharedHandled = false;
+        if (canUseShare) {
+          try {
+            const file = new File([blob], filename, { type: "image/png" });
+            if (navigator.canShare({ files: [file] })) {
+              sharedHandled = true;
+              navigator
+                .share({ files: [file], title: "몬길 스타다이브 파티" })
+                .catch((err) => {
+                  // 사용자가 공유창을 취소한 경우(AbortError)는 실패가 아니므로 그대로 둡니다.
+                  if (err && err.name !== "AbortError") {
+                    downloadViaAnchor(true);
+                  }
+                });
+            }
+          } catch (err) {
+            sharedHandled = false;
+          }
+        }
+
+        if (!sharedHandled) {
+          // 공유하기를 못 쓰는 모바일 브라우저는 미리보기(길게 눌러 저장) 예비 수단을
+          // 함께 보여주고, PC는 기존처럼 자동 다운로드만 합니다.
+          downloadViaAnchor(isMobile);
+        }
       }, "image/png");
     })
     .catch((err) => {
@@ -395,6 +446,26 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
           "\n\n브라우저 콘솔(F12)에서 자세한 오류를 확인할 수 있습니다."
       );
     });
+});
+
+function showPngPreview(url, filename) {
+  const overlay = document.getElementById("pngPreviewOverlay");
+  const img = document.getElementById("pngPreviewImage");
+  const dl = document.getElementById("pngPreviewDownload");
+  img.src = url;
+  dl.href = url;
+  dl.download = filename;
+  overlay.classList.remove("hidden");
+}
+
+const pngPreviewOverlay = document.getElementById("pngPreviewOverlay");
+const pngPreviewImage = document.getElementById("pngPreviewImage");
+document.getElementById("pngPreviewClose").addEventListener("click", () => {
+  pngPreviewOverlay.classList.add("hidden");
+  if (pngPreviewImage.src) {
+    URL.revokeObjectURL(pngPreviewImage.src);
+    pngPreviewImage.removeAttribute("src");
+  }
 });
 
 /* ---------- 초기 렌더 ---------- */

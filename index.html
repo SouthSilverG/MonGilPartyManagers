@@ -8,33 +8,53 @@
 </head>
 <body>
 
-  <header class="toolbar">
-    <div class="brand">
-      <span class="brand__mark">MG</span>
-      <div class="brand__text">
-        <span class="brand__title">몬길 스타다이브</span>
-        <span class="brand__subtitle">파티 에디터</span>
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar__brand">
+        <span class="app-sidebar__logo">MG</span>
       </div>
+      <nav class="app-sidebar__nav">
+        <a href="index.html" class="app-sidebar__item is-active">
+          <span class="app-sidebar__icon">🎮</span>
+          <span class="app-sidebar__label">파티 매니저</span>
+        </a>
+        <a href="calculator/index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">₩</span>
+          <span class="app-sidebar__label">과금 효율</span>
+        </a>
+      </nav>
+    </aside>
+
+    <div class="app-content">
+      <header class="toolbar">
+        <div class="brand">
+          <span class="brand__mark">MG</span>
+          <div class="brand__text">
+            <span class="brand__title">몬길 스타다이브</span>
+            <span class="brand__subtitle">파티 에디터</span>
+          </div>
+        </div>
+        <button id="btnSavePng" class="btn-save-png">
+          <span class="btn-save-png__icon">⬇</span>
+          저장 (PNG)
+        </button>
+      </header>
+
+      <main id="captureArea" class="board">
+        <div id="slots" class="slots"></div>
+
+        <section class="remarks">
+          <label for="remarksText" class="remarks__label">비고란</label>
+          <textarea id="remarksText" class="remarks__textarea" placeholder="파티에 대한 설명이나 메모를 자유롭게 작성하세요."></textarea>
+        </section>
+
+        <footer class="site-footer">
+          <p class="site-footer__line">본 페이지는 팬이 제작한 비공식 페이지이며, 모든 이미지·데이터 및 상표의 권리는 각 권리자에게 있습니다.</p>
+          <p class="site-footer__line">© Netmarble Corp. &amp; Netmarble Monster Inc. All Rights Reserved.</p>
+        </footer>
+      </main>
     </div>
-    <button id="btnSavePng" class="btn-save-png">
-      <span class="btn-save-png__icon">⬇</span>
-      저장 (PNG)
-    </button>
-  </header>
-
-  <main id="captureArea" class="board">
-    <div id="slots" class="slots"></div>
-
-    <section class="remarks">
-      <label for="remarksText" class="remarks__label">비고란</label>
-      <textarea id="remarksText" class="remarks__textarea" placeholder="파티에 대한 설명이나 메모를 자유롭게 작성하세요."></textarea>
-    </section>
-
-    <footer class="site-footer">
-      <p class="site-footer__line">본 페이지는 팬이 제작한 비공식 페이지이며, 모든 이미지·데이터 및 상표의 권리는 각 권리자에게 있습니다.</p>
-      <p class="site-footer__line">© Netmarble Corp. &amp; Netmarble Monster Inc. All Rights Reserved.</p>
-    </footer>
-  </main>
+  </div>
 
   <!-- 개발자 블로그 바로가기 (플로팅 버튼) -->
   <a
@@ -56,6 +76,25 @@
       </div>
       <input id="modalSearch" class="modal__search" type="text" placeholder="검색..." />
       <div id="modalList" class="modal__list"></div>
+    </div>
+  </div>
+
+  <!-- PNG 저장 미리보기 (자동 다운로드가 안 되는 환경, 특히 모바일을 위한 대안) -->
+  <div id="pngPreviewOverlay" class="modal-overlay hidden">
+    <div class="modal png-preview">
+      <div class="modal__header">
+        <h2>PNG 저장</h2>
+        <button id="pngPreviewClose" class="modal__close" aria-label="닫기">✕</button>
+      </div>
+      <div class="png-preview__body">
+        <p class="png-preview__hint">
+          자동 다운로드가 시작되지 않았다면, 아래 이미지를 <strong>길게 눌러 "이미지 저장"</strong>을 선택하세요.
+        </p>
+        <img id="pngPreviewImage" class="png-preview__image" alt="파티 편성 PNG 미리보기" />
+        <a id="pngPreviewDownload" class="png-preview__download" download target="_blank" rel="noopener">
+          ⬇ 다운로드
+        </a>
+      </div>
     </div>
   </div>
 
