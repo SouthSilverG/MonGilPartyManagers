@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>몬길 STAR DIVE 과금 계산기</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar__brand">
+        <span class="app-sidebar__logo">MG</span>
+      </div>
+      <nav class="app-sidebar__nav">
+        <a href="../index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">🎮</span>
+          <span class="app-sidebar__label">파티 매니저</span>
+        </a>
+        <a href="index.html" class="app-sidebar__item is-active">
+          <span class="app-sidebar__icon">₩</span>
+          <span class="app-sidebar__label">과금 효율</span>
+        </a>
+      </nav>
+    </aside>
+
+    <div class="app-content">
+      <header class="toolbar">
+        <div class="brand">
+          <span class="brand__mark">₩</span>
+          <div class="brand__text">
+            <span class="brand__title">몬길 STAR DIVE</span>
+            <span class="brand__subtitle">과금 계산기</span>
+          </div>
+        </div>
+        <button id="btnSavePng" class="btn-save-png">
+          <span class="btn-save-png__icon">⬇</span>
+          저장 (PNG)
+        </button>
+      </header>
+
+      <main id="captureArea" class="page">
+        <div class="total-hero">
+          <span class="total-hero__label">총합 과금액</span>
+          <span id="totalPrice" class="total-hero__value">₩0</span>
+        </div>
+
+        <div class="info-banner">
+          구매 하려는 상품 왼쪽 체크박스를 누르면 위 <strong>총합 과금액</strong>에 반영됩니다.<br />
+          <strong>효율</strong>은 "3000원당 1뽑" 기준으로, 실제 뽑기로 환산했을 때 얼마나 이득인지 보여주는 값입니다
+          (5성 캐릭터 = 90뽑, 5성 아티팩트 = 80뽑 기준). 초록색 이상이면 확실히 효율이 좋은 상품입니다.
+          <div class="legend">
+            <span class="legend__item"><span class="legend__dot" style="background:var(--eff-red)"></span>150% 이하</span>
+            <span class="legend__item"><span class="legend__dot" style="background:var(--eff-yellow)"></span>150~174%</span>
+            <span class="legend__item"><span class="legend__dot" style="background:var(--eff-green)"></span>175~249%</span>
+            <span class="legend__item"><span class="legend__dot" style="background:var(--eff-blue)"></span>250% 이상 (최상)</span>
+          </div>
+        </div>
+
+        <div id="sections"></div>
+
+        <footer class="site-footer">
+          <p>본 페이지는 팬이 제작한 비공식 페이지이며, 모든 이미지·데이터 및 상표의 권리는 각 권리자에게 있습니다.</p>
+          <p>© Netmarble Corp. &amp; Netmarble Monster Inc. All Rights Reserved.</p>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <!-- 제작자 블로그 바로가기 (플로팅 버튼) -->
+  <a
+    href="https://blog.naver.com/haryungame"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="dev-blog-fab"
+  >
+    <span class="dev-blog-fab__icon">✎</span>
+    <span class="dev-blog-fab__text">제작자 블로그</span>
+  </a>
+
+  <!-- PNG 저장 미리보기 (자동 다운로드가 안 되는 환경, 특히 모바일을 위한 대안) -->
+  <div id="pngPreviewOverlay" class="modal-overlay hidden">
+    <div class="modal png-preview">
+      <div class="modal__header">
+        <h2>PNG 저장</h2>
+        <button id="pngPreviewClose" class="modal__close" aria-label="닫기">✕</button>
+      </div>
+      <div class="png-preview__body">
+        <p class="png-preview__hint">
+          자동 다운로드가 시작되지 않았다면, 아래 이미지를 <strong>길게 눌러 "이미지 저장"</strong>을 선택하세요.
+        </p>
+        <img id="pngPreviewImage" class="png-preview__image" alt="과금 계산기 PNG 미리보기" />
+        <a id="pngPreviewDownload" class="png-preview__download" download target="_blank" rel="noopener">
+          ⬇ 다운로드
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="../vendor/html2canvas.min.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
