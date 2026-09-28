@@ -273,10 +273,13 @@ const modalList = document.getElementById("modalList");
 const modalSearch = document.getElementById("modalSearch");
 const modalClose = document.getElementById("modalClose");
 
-let modalContext = null; // { type, slotIndex, equipKey?, ringKey?, optIndex?, items, onSelect }
+// modalContext.onSelect / onClear는 모달을 닫을지 계속 열어둘지까지 직접
+// 책임집니다(예: 몬스터링 옵션은 4개를 다 채울 때까지 계속 열어둠).
+// getSelectedIds()를 주면 이미 선택된 항목을 목록에서 강조 표시합니다.
+let modalContext = null; // { items, onSelect, onClear?, getSelectedIds? }
 
-function openModal({ title, items, onSelect }) {
-  modalContext = { items, onSelect };
+function openModal({ title, items, onSelect, onClear, getSelectedIds }) {
+  modalContext = { items, onSelect, onClear, getSelectedIds };
   modalTitle.textContent = title;
   modalSearch.value = "";
   renderModalList(items);
@@ -292,19 +295,24 @@ function closeModal() {
 function renderModalList(items) {
   modalList.innerHTML = "";
 
+  const selectedIds = modalContext.getSelectedIds ? modalContext.getSelectedIds() : null;
+
   const clearItem = document.createElement("div");
   clearItem.className = "modal__item modal__item--clear";
   clearItem.textContent = "선택 해제";
   clearItem.addEventListener("click", () => {
-    modalContext.onSelect(null);
-    closeModal();
-    render();
+    if (modalContext.onClear) {
+      modalContext.onClear();
+    } else {
+      modalContext.onSelect(null);
+    }
   });
   modalList.appendChild(clearItem);
 
   items.forEach((item) => {
     const el = document.createElement("div");
-    el.className = "modal__item";
+    el.className =
+      "modal__item" + (selectedIds && selectedIds.has(item.id) ? " modal__item--selected" : "");
 
     if (item.image) {
       const img = document.createElement("img");
@@ -322,8 +330,6 @@ function renderModalList(items) {
 
     el.addEventListener("click", () => {
       modalContext.onSelect(item.id);
-      closeModal();
-      render();
     });
 
     modalList.appendChild(el);
@@ -359,32 +365,104 @@ slotsEl.addEventListener("click", (e) => {
     openModal({
       title: "캐릭터 선택",
       items: CHARACTERS,
-      onSelect: (id) => (slot.character = id),
+      onSelect: (id) => {
+        slot.character = id;
+        closeModal();
+        render();
+      },
     });
   } else if (action === "equip") {
     const equipKey = target.dataset.equip;
     openModal({
       title: EQUIPMENT_LABELS[equipKey] + " 선택",
       items: EQUIPMENT[equipKey],
-      onSelect: (id) => (slot.equipment[equipKey] = id),
+      onSelect: (id) => {
+        slot.equipment[equipKey] = id;
+        closeModal();
+        render();
+      },
     });
   } else if (action === "ring") {
     const ringKey = target.dataset.ring;
     const optIndex = Number(target.dataset.optIndex);
-    openModal({
-      title: RING_LABELS[ringKey] + " - 옵션 선택",
-      items: RING_OPTIONS[ringKey],
-      onSelect: (id) => (slot.rings[ringKey][optIndex] = id),
-    });
+    openRingOptionModal(slotIndex, ringKey, optIndex);
   } else if (action === "ring-monster") {
     const ringKey = target.dataset.ring;
     openModal({
       title: RING_LABELS[ringKey] + " - 몬스터 선택",
       items: MONSTERS,
-      onSelect: (id) => (slot.ringMonsters[ringKey] = id),
+      onSelect: (id) => {
+        slot.ringMonsters[ringKey] = id;
+        closeModal();
+        render();
+      },
     });
   }
 });
+
+// 몬스터링 옵션 선택: 한 번 열면(옵션1~4 중 아무 칸이나 클릭) 빈 칸을 차례로
+// 채워나가고, 4칸이 다 채워지면 자동으로 닫힙니다. 이미 채워진 칸을 눌러서
+// 값을 바꾸는 경우에는(다른 빈 칸이 없다면) 하나만 고르고 바로 닫힙니다.
+// 이 링에서 이미 선택된 옵션은 목록에서 강조 표시됩니다.
+function openRingOptionModal(slotIndex, ringKey, startOptIndex) {
+  let currentOptIndex = startOptIndex;
+
+  function findNextEmptyIndex(excludeIndex) {
+    const arr = state.slots[slotIndex].rings[ringKey];
+    for (let i = 0; i < arr.length; i++) {
+      if (i !== excludeIndex && arr[i] === null) return i;
+    }
+    return -1;
+  }
+
+  function updateTitle() {
+    modalTitle.textContent = `${RING_LABELS[ringKey]} - 옵션 선택 (옵션${currentOptIndex + 1})`;
+  }
+
+  function continueOrClose() {
+    const nextEmpty = findNextEmptyIndex(currentOptIndex);
+    if (nextEmpty === -1) {
+      closeModal();
+    } else {
+      currentOptIndex = nextEmpty;
+      updateTitle();
+      modalSearch.value = "";
+      renderModalList(modalContext.items);
+      modalSearch.focus();
+    }
+  }
+
+  openModal({
+    title: `${RING_LABELS[ringKey]} - 옵션 선택 (옵션${startOptIndex + 1})`,
+    items: RING_OPTIONS[ringKey],
+    getSelectedIds: () =>
+      new Set(state.slots[slotIndex].rings[ringKey].filter((v) => v !== null)),
+    onSelect: (id) => {
+      const arr = state.slots[slotIndex].rings[ringKey];
+
+      // 같은 몬스터링 안에서는 옵션을 중복해서 고를 수 없습니다.
+      // 이미 선택되어 있는 옵션을 다시 누르면 칸을 옮기지 않고
+      // 무조건 선택 해제만 합니다. 지금 고르고 있는 칸은 그대로
+      // 비워둔 채 모달은 계속 열어둡니다.
+      const existingIndex = arr.findIndex((v) => v === id);
+      if (existingIndex !== -1) {
+        arr[existingIndex] = null;
+        render();
+        renderModalList(modalContext.items);
+        return;
+      }
+
+      arr[currentOptIndex] = id;
+      render();
+      continueOrClose();
+    },
+    onClear: () => {
+      state.slots[slotIndex].rings[ringKey][currentOptIndex] = null;
+      closeModal();
+      render();
+    },
+  });
+}
 
 /* ---------- PNG로 저장 ---------- */
 document.getElementById("btnSavePng").addEventListener("click", () => {
@@ -609,6 +687,14 @@ function renderContentBox() {
     img.src = item.image;
     img.alt = item.name;
     contentBox.appendChild(img);
+
+    // 이미지 왼쪽을 배경색으로 자연스럽게 흐려지게 하는 효과입니다.
+    // CSS mask-image는 PNG로 저장(html2canvas)할 때 제대로 렌더링되지
+    // 않아서(경계가 뚝 끊겨 보임), 대신 실제 그라데이션 배경을 가진
+    // 별도 요소를 이미지 위에 겹쳐서 같은 효과를 냅니다.
+    const fade = document.createElement("span");
+    fade.className = "content-box__image-fade";
+    contentBox.appendChild(fade);
   } else {
     contentBox.classList.add("content-box--empty");
     const plus = document.createElement("span");

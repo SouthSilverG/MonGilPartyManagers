@@ -17,6 +17,8 @@
 
   --green: #2fbf71;
   --green-hover: #29a862;
+  --green-soft: rgba(47, 191, 113, 0.18);
+  --green-border: rgba(47, 191, 113, 0.55);
 
   --gold: #e8b13e;
   --gold-soft: rgba(232, 177, 62, 0.16);
@@ -296,7 +298,8 @@ body {
   font-size: 18px;
   font-weight: 800;
   padding: 14px 0;
-  z-index: 1;
+  position: relative;
+  z-index: 2;
 }
 .content-box__image {
   position: absolute;
@@ -305,8 +308,20 @@ body {
   height: 100%;
   width: 46%;
   object-fit: cover;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 40%);
-  mask-image: linear-gradient(to right, transparent, #000 40%);
+  z-index: 0;
+}
+/* 이미지 왼쪽을 배경색 쪽으로 자연스럽게 흐려지게 하는 효과.
+   (html2canvas로 PNG 저장할 때 CSS mask-image가 제대로 그려지지
+   않아서, 실제 그라데이션 배경을 가진 요소를 겹치는 방식으로 대체) */
+.content-box__image-fade {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 46%;
+  background: linear-gradient(to right, var(--panel) 0%, transparent 45%);
+  pointer-events: none;
+  z-index: 1;
 }
 
 @media (max-width: 720px) {
@@ -864,6 +879,17 @@ body {
   object-fit: cover;
   border-radius: var(--radius-sm);
 }
+/* 마우스를 올렸을 때(보라색, 일시적)와 헷갈리지 않도록 이미 선택된
+   옵션은 다른 색(초록색)으로 표시합니다. 마우스를 올려도 선택 표시가
+   유지되는 색이라, 해제했을 때 색이 바뀌는 게 바로 눈에 보입니다. */
+.modal__item--selected {
+  background: var(--green-soft);
+  border-color: var(--green-border);
+  color: var(--text-primary);
+  font-weight: 700;
+}
+.modal__item--selected:hover { background: var(--green-soft); border-color: var(--green-border); }
+
 .modal__item--clear {
   background: rgba(239, 93, 122, 0.08);
   border-color: rgba(239, 93, 122, 0.25);
