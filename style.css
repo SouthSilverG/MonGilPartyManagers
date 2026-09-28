@@ -15,10 +15,6 @@
   --accent-soft: rgba(109, 106, 240, 0.16);
   --accent-border: rgba(109, 106, 240, 0.45);
 
-  /* 파티 이름 / 컨텐츠 박스 전용 (기존 --accent보다 채도를 낮춘 톤) */
-  --header-accent-a: #7574b4;
-  --header-accent-b: #4d4b81;
-
   --green: #2fbf71;
   --green-hover: #29a862;
 
@@ -237,7 +233,8 @@ body {
 .party-title-box {
   grid-column: span 2;
   min-width: 0;
-  background: linear-gradient(135deg, var(--header-accent-a), var(--header-accent-b));
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 4px 6px;
   display: flex;
@@ -251,22 +248,22 @@ body {
   padding: 14px 16px;
   font-size: 22px;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-primary);
   font-family: inherit;
 }
 .party-title-box__input:focus { outline: none; }
-.party-title-box__input::placeholder { color: rgba(255, 255, 255, 0.65); }
+.party-title-box__input::placeholder { color: var(--text-muted); }
 
 .content-box {
   grid-column: span 1;
   min-width: 0;
-  border: none;
+  border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   cursor: pointer;
   font-family: inherit;
   position: relative;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--header-accent-a), var(--header-accent-b));
+  background: var(--panel);
   display: flex;
   align-items: center;
   padding: 0 18px;
@@ -295,7 +292,7 @@ body {
 }
 
 .content-box__name {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 18px;
   font-weight: 800;
   padding: 14px 0;
@@ -316,19 +313,6 @@ body {
   .party-header { grid-template-columns: 1fr; }
   .party-title-box,
   .content-box { grid-column: 1 / -1; }
-}
-
-/* ---------- 캐릭터 속성 배지 ---------- */
-.char-attr-badge {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
-  width: 30%;
-  aspect-ratio: 1 / 1;
-  max-width: 40px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
-  pointer-events: none;
 }
 
 /* ---------- 컨텐츠 선택 팝업 ---------- */
@@ -459,7 +443,7 @@ body {
   font-weight: 600;
 }
 
-.char-card__button img:not(.char-attr-badge) {
+.char-card__button img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -480,11 +464,31 @@ body {
 .char-card__name {
   background: var(--panel-2);
   border-top: 1px solid var(--border);
-  text-align: center;
   padding: 10px 6px;
   font-size: 15.5px;
   font-weight: 700;
   color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.char-card__name-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- 캐릭터 이름 앞 속성 아이콘 (배경 없이 아이콘만) ---------- */
+.char-card__attr-icon {
+  flex-shrink: 0;
+  width: 1.15em;
+  height: 1.15em;
+  object-fit: contain;
 }
 
 /* ---------- 몬스터링 ---------- */

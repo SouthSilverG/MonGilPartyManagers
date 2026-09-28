@@ -54,7 +54,7 @@ const CHARACTERS = [
 const ATTRIBUTES = {
   earth: { label: "땅", icon: "assets/attributes/earth.png" },
   wind: { label: "바람", icon: "assets/attributes/wind.png" },
-  lightning: { label: "번개", icon: "assets/attributes/lightning.jpg" },
+  lightning: { label: "번개", icon: "assets/attributes/lightning.png" },
   fire: { label: "불", icon: "assets/attributes/fire.png" },
   ice: { label: "얼음", icon: "assets/attributes/ice.png" },
 };

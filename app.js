@@ -89,19 +89,6 @@ function renderSlot(slot, slotIndex) {
     img.src = imgOrPlaceholder(charData.image);
     img.alt = charData.name;
     charBtn.appendChild(img);
-
-    // 우측 하단 속성 배지 (몬길속성리스트.xlsx 기준)
-    const attrKey = getCharacterAttributeKey(charData.name);
-    const attr = attrKey ? ATTRIBUTES[attrKey] : null;
-    if (attr) {
-      const attrBadge = document.createElement("img");
-      attrBadge.className = "char-attr-badge";
-      attrBadge.loading = "lazy";
-      attrBadge.src = attr.icon;
-      attrBadge.alt = attr.label;
-      attrBadge.title = attr.label;
-      charBtn.appendChild(attrBadge);
-    }
   } else {
     charBtn.classList.add("char-card__button--empty");
     const plus = document.createElement("span");
@@ -117,7 +104,29 @@ function renderSlot(slot, slotIndex) {
 
   const charName = document.createElement("div");
   charName.className = "char-card__name";
-  charName.textContent = charData ? charData.name : "캐릭터를 선택하세요";
+
+  if (charData) {
+    // 이름 앞에 속성 아이콘만 텍스트와 비슷한 크기로 붙입니다
+    // (몬길속성리스트.xlsx 기준, 배경 태그 없이 아이콘만).
+    const attrKey = getCharacterAttributeKey(charData.name);
+    const attr = attrKey ? ATTRIBUTES[attrKey] : null;
+    if (attr) {
+      const attrIcon = document.createElement("img");
+      attrIcon.className = "char-card__attr-icon";
+      attrIcon.loading = "lazy";
+      attrIcon.src = attr.icon;
+      attrIcon.alt = attr.label;
+      attrIcon.title = attr.label;
+      charName.appendChild(attrIcon);
+    }
+
+    const nameText = document.createElement("span");
+    nameText.className = "char-card__name-text";
+    nameText.textContent = charData.name;
+    charName.appendChild(nameText);
+  } else {
+    charName.textContent = "캐릭터를 선택하세요";
+  }
   charCard.appendChild(charName);
 
   col.appendChild(charCard);
