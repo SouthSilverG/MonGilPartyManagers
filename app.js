@@ -682,10 +682,15 @@ function renderContentBox() {
     nameEl.textContent = item.name;
     contentBox.appendChild(nameEl);
 
-    const img = document.createElement("img");
+    // <img>의 object-fit: cover 대신 background-image + background-size:
+    // cover를 씁니다. PNG로 저장할 때 쓰는 html2canvas가 object-fit을
+    // 제대로 반영하지 못해서(이미지가 눌린 것처럼 나옴), 배경 이미지
+    // 방식으로 하면 웹 화면과 PNG 저장 양쪽에서 똑같이 잘 잘려서 보입니다.
+    const img = document.createElement("span");
     img.className = "content-box__image";
-    img.src = item.image;
-    img.alt = item.name;
+    img.style.backgroundImage = `url("${item.image}")`;
+    img.setAttribute("role", "img");
+    img.setAttribute("aria-label", item.name);
     contentBox.appendChild(img);
 
     // 이미지 왼쪽을 배경색으로 자연스럽게 흐려지게 하는 효과입니다.

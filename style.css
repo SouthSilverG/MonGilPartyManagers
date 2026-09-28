@@ -307,7 +307,9 @@ body {
   right: 0;
   height: 100%;
   width: 46%;
-  object-fit: cover;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   z-index: 0;
 }
 /* 이미지 왼쪽을 배경색 쪽으로 자연스럽게 흐려지게 하는 효과.
