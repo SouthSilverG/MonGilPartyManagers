@@ -30,7 +30,7 @@
         <div class="brand">
           <span class="brand__mark">MG</span>
           <div class="brand__text">
-            <span class="brand__title">몬길 스타다이브 Ver 1.3</span>
+            <span class="brand__title">몬길 스타다이브</span>
             <span class="brand__subtitle">파티 에디터</span>
           </div>
         </div>
@@ -41,6 +41,22 @@
       </header>
 
       <main id="captureArea" class="board">
+        <div class="party-header">
+          <div class="party-title-box">
+            <input
+              id="partyTitleInput"
+              class="party-title-box__input"
+              type="text"
+              maxlength="40"
+              placeholder="파티 이름을 입력하세요"
+            />
+          </div>
+          <button id="contentBox" type="button" class="content-box content-box--empty">
+            <span class="content-box__plus">+</span>
+            <span class="content-box__label">컨텐츠 설정</span>
+          </button>
+        </div>
+
         <div id="slots" class="slots"></div>
 
         <section class="remarks">
@@ -76,6 +92,18 @@
       </div>
       <input id="modalSearch" class="modal__search" type="text" placeholder="검색..." />
       <div id="modalList" class="modal__list"></div>
+    </div>
+  </div>
+
+  <!-- 컨텐츠 선택 팝업 (토벌 / 전설토벌 탭) -->
+  <div id="contentModalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal__header">
+        <h2>컨텐츠 선택</h2>
+        <button id="contentModalClose" class="modal__close" aria-label="닫기">✕</button>
+      </div>
+      <div id="contentModalTabs" class="content-modal__tabs"></div>
+      <div id="contentModalGrid" class="content-modal__grid"></div>
     </div>
   </div>
 

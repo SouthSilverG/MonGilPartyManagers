@@ -46,6 +46,78 @@ const CHARACTERS = [
 ];
 
 /* -----------------------------------------------------------
+   1-0) 속성 아이콘 (몬길속성리스트.xlsx 기준)
+   캐릭터 카드 우측 하단에 표시되는 작은 배지 아이콘입니다.
+   새 속성이 추가되면 여기에 항목을 추가하고, 아이콘 파일을
+   assets/attributes/ 폴더에 넣은 뒤 icon 경로만 맞춰주면 됩니다.
+----------------------------------------------------------- */
+const ATTRIBUTES = {
+  earth: { label: "땅", icon: "assets/attributes/earth.png" },
+  wind: { label: "바람", icon: "assets/attributes/wind.png" },
+  lightning: { label: "번개", icon: "assets/attributes/lightning.jpg" },
+  fire: { label: "불", icon: "assets/attributes/fire.png" },
+  ice: { label: "얼음", icon: "assets/attributes/ice.png" },
+};
+
+/* 캐릭터 이름 -> 속성 키. "프란시스: 서머 다이브!"처럼 스킨이 붙은 이름은
+   app.js에서 ":" 앞부분(기본 캐릭터 이름)만 잘라내 이 표를 찾아봅니다.
+   그러니 여기에는 기본 이름만 한 번씩 적으면 됩니다. */
+const CHARACTER_ATTRIBUTES = {
+  "가비": "earth",
+  "나기": "wind",
+  "나래": "ice",
+  "데이지": "earth",
+  "레이나": "lightning",
+  "메이벨": "lightning",
+  "미나": "fire",
+  "베르나": "fire",
+  "벤자민": "lightning",
+  "보니": "wind",
+  "브리셸": "earth",
+  "산군": "wind",
+  "세라": "ice",
+  "수르나": "fire",
+  "수프란": "earth",
+  "에스데": "wind",
+  "엔젤": "fire",
+  "엘리": "earth",
+  "연화": "lightning",
+  "오필리아": "ice",
+  "이호": "fire",
+  "지원": "wind",
+  "클라우드": "ice",
+  "페니": "lightning",
+  "프란시스": "earth",
+  "플레아": "fire",
+  "비비안": "fire",
+};
+
+/* -----------------------------------------------------------
+   1-0-1) 컨텐츠(토벌 / 전설토벌) 목록
+   파티 제목 옆 "컨텐츠 설정"에서 고를 수 있는 목록입니다.
+   탭을 늘리고 싶으면 CONTENT_TABS에 { key, label }을 추가하고,
+   CONTENTS에 같은 key로 배열을 채우면 됩니다.
+----------------------------------------------------------- */
+const CONTENT_TABS = [
+  { key: "raid", label: "토벌" },
+  { key: "legend", label: "전설토벌" },
+];
+
+const CONTENTS = {
+  raid: [
+    { id: "content_custos", name: "쿠스토스", image: "assets/contents/custos.png" },
+    { id: "content_amon", name: "아몬", image: "assets/contents/amon.png" },
+    { id: "content_abadan", name: "아바단", image: "assets/contents/abadan.png" },
+    { id: "content_dooeoksini", name: "두억시니", image: "assets/contents/dooeoksini.png" },
+    { id: "content_hanul", name: "한울", image: "assets/contents/hanul.png" },
+    { id: "content_jeokyoung", name: "적영", image: "assets/contents/jeokyoung.png" },
+  ],
+  legend: [
+    { id: "content_reginula", name: "레기눌라", image: "assets/contents/reginula.png" },
+  ],
+};
+
+/* -----------------------------------------------------------
    1-1) 몬스터 목록 (165마리, 실제 이름 + 이미지로 채워둠)
    몬스터링1/2/3 라벨칸을 클릭하면 여기서 몬스터 자체를 고를 수 있습니다.
    (옵션 4칸과는 별개로, "이 링에 어떤 몬스터를 넣을지"를 고르는 용도입니다)

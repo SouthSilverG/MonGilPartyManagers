@@ -15,6 +15,10 @@
   --accent-soft: rgba(109, 106, 240, 0.16);
   --accent-border: rgba(109, 106, 240, 0.45);
 
+  /* 파티 이름 / 컨텐츠 박스 전용 (기존 --accent보다 채도를 낮춘 톤) */
+  --header-accent-a: #7574b4;
+  --header-accent-b: #4d4b81;
+
   --green: #2fbf71;
   --green-hover: #29a862;
 
@@ -219,6 +223,169 @@ body {
   .slots { grid-template-columns: 1fr; }
 }
 
+/* ---------- 파티 제목 / 컨텐츠 설정 ---------- */
+/* 슬롯 영역(.slots)과 똑같은 3열 그리드를 사용해서, 파티 이름 박스는
+   1~2번째 칸을, 컨텐츠 박스는 정확히 3번째 슬롯 칸의 폭에 맞춰
+   정렬되도록 합니다. */
+.party-header {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.party-title-box {
+  grid-column: span 2;
+  min-width: 0;
+  background: linear-gradient(135deg, var(--header-accent-a), var(--header-accent-b));
+  border-radius: var(--radius-lg);
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+}
+
+.party-title-box__input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  padding: 14px 16px;
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  font-family: inherit;
+}
+.party-title-box__input:focus { outline: none; }
+.party-title-box__input::placeholder { color: rgba(255, 255, 255, 0.65); }
+
+.content-box {
+  grid-column: span 1;
+  min-width: 0;
+  border: none;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--header-accent-a), var(--header-accent-b));
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+}
+
+.content-box--empty {
+  background: var(--bg-soft);
+  border: 1.5px dashed var(--dashed);
+  color: var(--text-secondary);
+  justify-content: center;
+  gap: 8px;
+}
+.content-box--empty:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+.content-box--empty .content-box__plus {
+  font-size: 26px;
+  font-weight: 300;
+  line-height: 1;
+}
+.content-box--empty .content-box__label {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.content-box__name {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 800;
+  padding: 14px 0;
+  z-index: 1;
+}
+.content-box__image {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 46%;
+  object-fit: cover;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 40%);
+  mask-image: linear-gradient(to right, transparent, #000 40%);
+}
+
+@media (max-width: 720px) {
+  .party-header { grid-template-columns: 1fr; }
+  .party-title-box,
+  .content-box { grid-column: 1 / -1; }
+}
+
+/* ---------- 캐릭터 속성 배지 ---------- */
+.char-attr-badge {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 30%;
+  aspect-ratio: 1 / 1;
+  max-width: 40px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  pointer-events: none;
+}
+
+/* ---------- 컨텐츠 선택 팝업 ---------- */
+.content-modal__tabs {
+  display: flex;
+  gap: 6px;
+  padding: 12px 16px 0;
+}
+.content-modal__tab {
+  flex: 1;
+  padding: 9px 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.content-modal__tab:hover { color: var(--text-primary); border-color: var(--accent-border); }
+.content-modal__tab.is-active {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
+  color: var(--text-primary);
+}
+
+.content-modal__grid {
+  padding: 12px 16px 16px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.content-item {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s, border-color 0.15s;
+}
+.content-item:hover { background: var(--accent-soft); border-color: var(--accent-border); }
+.content-item img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+}
+
 /* ---------- 슬롯 컬럼 (카드형) ---------- */
 .slot {
   display: flex;
@@ -292,7 +459,7 @@ body {
   font-weight: 600;
 }
 
-.char-card__button img {
+.char-card__button img:not(.char-attr-badge) {
   width: 100%;
   height: 100%;
   object-fit: cover;

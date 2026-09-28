@@ -29,6 +29,8 @@ function createEmptySlot() {
 
 const state = {
   slots: Array.from({ length: SLOT_COUNT }, createEmptySlot),
+  partyTitle: "",
+  contentId: null,
 };
 
 /* ---------- 유틸 ---------- */
@@ -38,6 +40,16 @@ function findById(list, id) {
 
 function imgOrPlaceholder(src) {
   return src && src.trim() !== "" ? src : "assets/placeholder.svg";
+}
+
+// 캐릭터 이름으로 속성 키를 찾습니다. "프란시스: 서머 다이브!"처럼 스킨이
+// 붙은 이름은 CHARACTER_ATTRIBUTES에 그대로는 없으니, ":" 앞의 기본 이름으로
+// 한 번 더 찾아봅니다.
+function getCharacterAttributeKey(name) {
+  if (!name) return null;
+  if (CHARACTER_ATTRIBUTES[name]) return CHARACTER_ATTRIBUTES[name];
+  const baseName = name.split(":")[0].trim();
+  return CHARACTER_ATTRIBUTES[baseName] || null;
 }
 
 /* ---------- 렌더링 ---------- */
@@ -77,6 +89,19 @@ function renderSlot(slot, slotIndex) {
     img.src = imgOrPlaceholder(charData.image);
     img.alt = charData.name;
     charBtn.appendChild(img);
+
+    // 우측 하단 속성 배지 (몬길속성리스트.xlsx 기준)
+    const attrKey = getCharacterAttributeKey(charData.name);
+    const attr = attrKey ? ATTRIBUTES[attrKey] : null;
+    if (attr) {
+      const attrBadge = document.createElement("img");
+      attrBadge.className = "char-attr-badge";
+      attrBadge.loading = "lazy";
+      attrBadge.src = attr.icon;
+      attrBadge.alt = attr.label;
+      attrBadge.title = attr.label;
+      charBtn.appendChild(attrBadge);
+    }
   } else {
     charBtn.classList.add("char-card__button--empty");
     const plus = document.createElement("span");
@@ -473,6 +498,143 @@ document.getElementById("pngPreviewClose").addEventListener("click", () => {
     pngPreviewImage.removeAttribute("src");
   }
 });
+
+/* ---------- 파티 제목 ---------- */
+const partyTitleInput = document.getElementById("partyTitleInput");
+
+// 사용자가 파티 이름을 직접 타이핑한 적이 있는지 추적합니다.
+// true인 동안에는(=아직 자동으로 채워진 이름 그대로 두었을 때) 컨텐츠를
+// 바꿀 때마다 "{컨텐츠 이름} 파티"로 계속 갱신되고, 사용자가 한 번이라도
+// 직접 수정하면 그 뒤로는 컨텐츠를 바꿔도 이름을 건드리지 않습니다.
+let partyTitleAutoFilled = true;
+
+partyTitleInput.addEventListener("input", () => {
+  state.partyTitle = partyTitleInput.value;
+  partyTitleAutoFilled = false;
+});
+
+/* ---------- 컨텐츠(토벌 / 전설토벌) 설정 ---------- */
+const contentBox = document.getElementById("contentBox");
+const contentModalOverlay = document.getElementById("contentModalOverlay");
+const contentModalTabs = document.getElementById("contentModalTabs");
+const contentModalGrid = document.getElementById("contentModalGrid");
+const contentModalClose = document.getElementById("contentModalClose");
+
+let activeContentTab = CONTENT_TABS[0].key;
+
+function findContentById(id) {
+  for (const tab of CONTENT_TABS) {
+    const found = (CONTENTS[tab.key] || []).find((item) => item.id === id);
+    if (found) return found;
+  }
+  return null;
+}
+
+function renderContentModalTabs() {
+  contentModalTabs.innerHTML = "";
+  CONTENT_TABS.forEach((tab) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "content-modal__tab" + (tab.key === activeContentTab ? " is-active" : "");
+    btn.textContent = tab.label;
+    btn.addEventListener("click", () => {
+      activeContentTab = tab.key;
+      renderContentModalTabs();
+      renderContentModalGrid();
+    });
+    contentModalTabs.appendChild(btn);
+  });
+}
+
+function renderContentModalGrid() {
+  contentModalGrid.innerHTML = "";
+  const items = CONTENTS[activeContentTab] || [];
+  items.forEach((item) => {
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = "content-item";
+
+    const img = document.createElement("img");
+    img.loading = "lazy";
+    img.src = item.image;
+    img.alt = item.name;
+    card.appendChild(img);
+
+    const nameEl = document.createElement("span");
+    nameEl.textContent = item.name;
+    card.appendChild(nameEl);
+
+    card.addEventListener("click", () => {
+      selectContent(item);
+      closeContentModal();
+    });
+
+    contentModalGrid.appendChild(card);
+  });
+}
+
+function openContentModal() {
+  activeContentTab = CONTENT_TABS[0].key;
+  renderContentModalTabs();
+  renderContentModalGrid();
+  contentModalOverlay.classList.remove("hidden");
+}
+
+function closeContentModal() {
+  contentModalOverlay.classList.add("hidden");
+}
+
+function renderContentBox() {
+  const item = state.contentId ? findContentById(state.contentId) : null;
+  contentBox.innerHTML = "";
+
+  if (item) {
+    contentBox.classList.remove("content-box--empty");
+    const nameEl = document.createElement("span");
+    nameEl.className = "content-box__name";
+    nameEl.textContent = item.name;
+    contentBox.appendChild(nameEl);
+
+    const img = document.createElement("img");
+    img.className = "content-box__image";
+    img.src = item.image;
+    img.alt = item.name;
+    contentBox.appendChild(img);
+  } else {
+    contentBox.classList.add("content-box--empty");
+    const plus = document.createElement("span");
+    plus.className = "content-box__plus";
+    plus.textContent = "+";
+    contentBox.appendChild(plus);
+
+    const label = document.createElement("span");
+    label.className = "content-box__label";
+    label.textContent = "컨텐츠 설정";
+    contentBox.appendChild(label);
+  }
+}
+
+function selectContent(item) {
+  state.contentId = item.id;
+  renderContentBox();
+
+  // 아직 사용자가 파티 이름을 직접 수정한 적이 없다면(=자동 채움 상태 유지 중)
+  // 컨텐츠를 바꿀 때마다 "{컨텐츠 이름} 파티"로 계속 갱신합니다.
+  // 사용자가 한 번이라도 직접 타이핑했다면 그 이후로는 덮어쓰지 않습니다.
+  if (partyTitleAutoFilled || partyTitleInput.value.trim() === "") {
+    partyTitleInput.value = `${item.name} 파티`;
+    state.partyTitle = partyTitleInput.value;
+    partyTitleAutoFilled = true;
+  }
+}
+
+contentBox.addEventListener("click", openContentModal);
+contentModalClose.addEventListener("click", closeContentModal);
+contentModalOverlay.addEventListener("click", (e) => {
+  if (e.target === contentModalOverlay) closeContentModal();
+});
+
+renderContentBox();
 
 /* ---------- 초기 렌더 ---------- */
 render();
