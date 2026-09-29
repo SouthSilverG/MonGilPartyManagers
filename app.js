@@ -6,6 +6,43 @@
 const RING_KEYS = Object.keys(RING_LABELS);
 const EQUIP_KEYS = Object.keys(EQUIPMENT_LABELS);
 
+/* 몬스터링 옵션 이름이 길 때, 보기 좋은 지점에서 줄바꿈해서 보여줍니다.
+   ("보스 몬스터 피해 증가" -> "보스 몬스터" 줄바꿈 "피해 증가" 처럼)
+   실제 데이터(data.js)의 옵션 이름 자체는 바꾸지 않고, 화면에 표시할 때만
+   줄바꿈 문자(\n)를 끼워 넣습니다. .ring-slot__value 쪽 CSS에
+   white-space: pre-line 이 설정되어 있어야 이 줄바꿈이 실제로 적용됩니다. */
+/* 몬스터 이름 중 일부는 자동 줄바꿈(word-break)이 붙는 위치가 어색해서,
+   보기 좋은 지점을 직접 지정해 둡니다. 여기 없는 몬스터는 지금처럼
+   자동으로 알아서 줄바꿈됩니다. 이름을 data.js에서 바꾸면 이 표도
+   같이 맞춰줘야 합니다. */
+const MONSTER_NAME_BREAKS = {
+  "멍든 피오름 꽃": "멍든\n피오름 꽃",
+  "프로스트바이트": "프로스트\n바이트",
+  "황금향의 파수꾼": "황금향의\n파수꾼",
+  "수도사의 그림자": "수도사의\n그림자",
+  "달의 그림자에 물든 하카": "달의 그림자\n에 물든 하카",
+  "돈이 너무 좋은 몰리": "돈이 너무\n좋은 몰리",
+  "아몬의 그림자": "아몬의\n그림자",
+  "뒤틀린 뼈오름 꽃": "뒤틀린\n뼈오름 꽃",
+  "뒤틀린 피오름 꽃": "뒤틀린\n피오름 꽃",
+};
+
+function formatMonsterName(name) {
+  return MONSTER_NAME_BREAKS[name] || name;
+}
+
+function formatRingOptionName(name) {
+  const DAMAGE_SUFFIX = "피해 증가";
+  if (name.endsWith(DAMAGE_SUFFIX)) {
+    const prefix = name.slice(0, name.length - DAMAGE_SUFFIX.length).trim();
+    return prefix ? `${prefix}\n${DAMAGE_SUFFIX}` : DAMAGE_SUFFIX;
+  }
+  if (name === "특수 스킬 재사용 대기시간 감소") {
+    return "특수 스킬 재사용\n대기시간 감소";
+  }
+  return name;
+}
+
 /* 장비 부위별 포인트 색상 (라벨 앞 작은 점 표시용, 순수 UI 장식) */
 const EQUIP_COLORS = {
   hat: "#5b9dff",
@@ -167,7 +204,7 @@ function renderSlot(slot, slotIndex) {
 
       const monsterNameEl = document.createElement("span");
       monsterNameEl.className = "ring-row__monster-name";
-      monsterNameEl.textContent = monster.name;
+      monsterNameEl.textContent = formatMonsterName(monster.name);
       monsterBtn.appendChild(monsterNameEl);
     } else {
       // 선택 전: 몇 번째 몬스터링인지 + 선택 안내 문구를 보여줍니다.
@@ -204,7 +241,7 @@ function renderSlot(slot, slotIndex) {
 
       const slotValueEl = document.createElement("span");
       slotValueEl.className = "ring-slot__value";
-      slotValueEl.textContent = opt ? opt.name : "선택 +";
+      slotValueEl.textContent = opt ? formatRingOptionName(opt.name) : "선택 +";
       cell.appendChild(slotValueEl);
 
       row.appendChild(cell);
@@ -229,16 +266,21 @@ function renderSlot(slot, slotIndex) {
     cell.dataset.slotIndex = String(slotIndex);
     cell.dataset.equip = equipKey;
 
-    const labelEl = document.createElement("div");
-    labelEl.className = "equip-slot__label";
+    // 장비를 선택하면 위쪽 부위 이름("장비 모자" 등)은 더 이상 보여주지
+    // 않고, 그 자리를 장비 이름에 온전히 내어줍니다. 부위 이름은 아직
+    // 선택하지 않은 빈 칸에서만 표시됩니다.
+    if (!item) {
+      const labelEl = document.createElement("div");
+      labelEl.className = "equip-slot__label";
 
-    const dot = document.createElement("span");
-    dot.className = "equip-slot__dot";
-    dot.style.background = EQUIP_COLORS[equipKey];
-    labelEl.appendChild(dot);
+      const dot = document.createElement("span");
+      dot.className = "equip-slot__dot";
+      dot.style.background = EQUIP_COLORS[equipKey];
+      labelEl.appendChild(dot);
 
-    labelEl.appendChild(document.createTextNode(EQUIPMENT_LABELS[equipKey]));
-    cell.appendChild(labelEl);
+      labelEl.appendChild(document.createTextNode(EQUIPMENT_LABELS[equipKey]));
+      cell.appendChild(labelEl);
+    }
 
     if (item) {
       const img = document.createElement("img");

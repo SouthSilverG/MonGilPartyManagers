@@ -74,15 +74,15 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 13px;
+  font-size: 16px;
   color: #fff;
   letter-spacing: 0.5px;
   box-shadow: 0 4px 14px rgba(109, 106, 240, 0.35);
 }
 
 .brand__text { display: flex; flex-direction: column; line-height: 1.25; }
-.brand__title { font-size: 14px; font-weight: 700; color: var(--text-primary); }
-.brand__subtitle { font-size: 11px; color: var(--text-muted); font-weight: 500; }
+.brand__title { font-size: 17.5px; font-weight: 700; color: var(--text-primary); }
+.brand__subtitle { font-size: 14px; color: var(--text-muted); font-weight: 500; }
 
 .btn-save-png {
   display: flex;
@@ -95,12 +95,12 @@ body {
   border-radius: 8px;
   cursor: pointer;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
   transition: background 0.15s, transform 0.1s;
 }
 .btn-save-png:hover { background: var(--green-hover); }
 .btn-save-png:active { transform: translateY(1px); }
-.btn-save-png__icon { font-size: 12px; }
+.btn-save-png__icon { font-size: 15px; }
 
 /* ---------- 좌측 사이드바 (파티 매니저 / 과금 효율 탭) ---------- */
 .app-shell {
@@ -139,7 +139,7 @@ body {
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  font-size: 13px;
+  font-size: 16px;
   color: #fff;
   letter-spacing: 0.5px;
   box-shadow: 0 4px 14px rgba(109, 106, 240, 0.35);
@@ -160,7 +160,7 @@ body {
   border: 1px solid transparent;
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
@@ -174,7 +174,7 @@ body {
   color: var(--text-primary);
 }
 .app-sidebar__icon {
-  font-size: 16px;
+  font-size: 20px;
   width: 20px;
   text-align: center;
   flex-shrink: 0;
@@ -201,7 +201,7 @@ body {
     border-bottom: 1px solid var(--border);
   }
   .app-sidebar__nav { flex-direction: row; gap: 8px; }
-  .app-sidebar__item { padding: 8px 10px; font-size: 12px; }
+  .app-sidebar__item { padding: 8px 10px; font-size: 15px; }
 }
 
 /* ---------- 보드 레이아웃 ---------- */
@@ -248,7 +248,7 @@ body {
   background: transparent;
   border: none;
   padding: 14px 16px;
-  font-size: 22px;
+  font-size: 27.5px;
   font-weight: 800;
   color: var(--text-primary);
   font-family: inherit;
@@ -284,18 +284,18 @@ body {
   color: var(--text-primary);
 }
 .content-box--empty .content-box__plus {
-  font-size: 26px;
+  font-size: 32.5px;
   font-weight: 300;
   line-height: 1;
 }
 .content-box--empty .content-box__label {
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
 }
 
 .content-box__name {
   color: var(--text-primary);
-  font-size: 18px;
+  font-size: 22.5px;
   font-weight: 800;
   padding: 14px 0;
   position: relative;
@@ -345,7 +345,7 @@ body {
   border: 1px solid var(--border);
   background: var(--bg-soft);
   color: var(--text-secondary);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
 }
@@ -375,7 +375,7 @@ body {
   gap: 8px;
   text-align: center;
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 600;
   transition: background 0.15s, border-color 0.15s;
 }
@@ -406,7 +406,7 @@ body {
 .slot__header {
   text-align: center;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
   letter-spacing: 0.3px;
   color: var(--text-secondary);
   padding: 6px 0 2px;
@@ -451,12 +451,12 @@ body {
 }
 
 .char-card__button .placeholder-plus {
-  font-size: 34px;
+  font-size: 42.5px;
   font-weight: 300;
   line-height: 1;
 }
 .char-card__button .placeholder-hint {
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
 }
 
@@ -482,7 +482,7 @@ body {
   background: var(--panel-2);
   border-top: 1px solid var(--border);
   padding: 10px 6px;
-  font-size: 15.5px;
+  font-size: 19.5px;
   font-weight: 700;
   color: var(--text-primary);
   display: flex;
@@ -511,9 +511,16 @@ body {
 /* ---------- 몬스터링 ---------- */
 .rings { display: flex; flex-direction: column; gap: 8px; }
 
+/* 몬스터 버튼(왼쪽, 위아래 전체 높이)을 기준으로, 옵션 4칸은 오른쪽에
+   2 x 2로 넓게 배치합니다. 옵션 칸이 이전보다 가로로 훨씬 넓어져서
+   글자 크기를 키워도 겹치거나 너무 빽빽해지지 않습니다. 아래 옵션
+   4칸(.ring-slot)에는 별도 grid-column/grid-row를 지정하지 않아도,
+   CSS grid가 순서대로 자동 배치하면서 자연스럽게 2 x 2로 채워집니다
+   (몬스터 버튼이 1열 전체를 차지하고 있기 때문).*/
 .ring-row {
   display: grid;
-  grid-template-columns: 1.15fr repeat(4, 1fr);
+  grid-template-columns: 1.7fr 2fr 2fr;
+  grid-auto-rows: minmax(0, 1fr);
   align-items: stretch;
   gap: 6px;
   position: relative;
@@ -535,7 +542,7 @@ body {
   left: 6px;
   background: var(--gold);
   color: #241a03;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
   padding: 2px 7px;
   border-radius: 999px;
@@ -546,10 +553,11 @@ body {
 }
 
 .ring-row__label {
+  grid-row: 1 / span 2;
   background: var(--bg-soft);
   border: 1px solid var(--border);
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 600;
   display: flex;
   flex-direction: column;
@@ -558,7 +566,7 @@ body {
   gap: 2px;
   text-align: center;
   min-width: 0;
-  min-height: 84px;
+  min-height: 108px;
   border-radius: var(--radius-sm);
   padding: 4px;
   line-height: 1.2;
@@ -586,19 +594,19 @@ body {
 }
 
 .ring-row__ring-name {
-  font-size: 10.5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 .ring-row__monster-name {
-  font-size: 12px;
+  font-size: 15px;
   color: var(--text-primary);
   font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: pre-line;
+  overflow-wrap: break-word;
+  word-break: break-all;
   max-width: 100%;
   min-width: 0;
   width: 100%;
@@ -615,7 +623,7 @@ body {
   justify-content: center;
   gap: 3px;
   text-align: center;
-  min-height: 84px;
+  min-height: 51px;
   border-radius: var(--radius-sm);
   padding: 4px;
   line-height: 1.2;
@@ -629,16 +637,17 @@ body {
 }
 
 .ring-slot__label {
-  font-size: 9.5px;
+  font-size: 12px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.2px;
 }
 .ring-slot__value {
-  font-size: 11.5px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-secondary);
+  white-space: pre-line;
 }
 .ring-slot.filled .ring-slot__value { color: var(--text-primary); font-weight: 700; }
 
@@ -654,7 +663,7 @@ body {
   background: var(--bg-soft);
   border: 1px solid var(--border);
   color: var(--text-primary);
-  aspect-ratio: 1 / 1;
+  min-height: 96px;
   border-radius: var(--radius-md);
   cursor: pointer;
   display: flex;
@@ -681,7 +690,7 @@ body {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
+  font-size: 12.5px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -695,12 +704,12 @@ body {
   flex-shrink: 0;
 }
 .equip-slot .equip-slot__value {
-  font-size: 11.5px;
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-all;
   max-width: 100%;
   min-width: 0;
   width: 100%;
@@ -720,7 +729,7 @@ body {
   font-weight: 700;
   margin-bottom: 10px;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 15px;
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
@@ -733,7 +742,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   padding: 12px;
-  font-size: 13.5px;
+  font-size: 17px;
   font-family: inherit;
   line-height: 1.5;
 }
@@ -750,7 +759,7 @@ body {
   padding-top: 14px;
   border-top: 1px solid var(--border);
   text-align: center;
-  font-size: 11.5px;
+  font-size: 14.5px;
   line-height: 1.5;
   color: var(--text-muted);
 }
@@ -774,7 +783,7 @@ body {
   background: #03c75a; /* 네이버 브랜드 컬러 */
   color: #ffffff;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
   text-decoration: none;
   padding: 12px 20px;
   border-radius: 999px;
@@ -790,7 +799,7 @@ body {
   transform: translateY(0);
 }
 .dev-blog-fab__icon {
-  font-size: 14px;
+  font-size: 17.5px;
   line-height: 1;
 }
 
@@ -826,12 +835,12 @@ body {
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
 }
-.modal__header h2 { margin: 0; font-size: 15px; font-weight: 700; }
+.modal__header h2 { margin: 0; font-size: 19px; font-weight: 700; }
 .modal__close {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 16px;
+  font-size: 20px;
   cursor: pointer;
   padding: 4px;
   border-radius: 6px;
@@ -845,7 +854,7 @@ body {
   border: 1px solid var(--border);
   background: var(--bg-soft);
   color: var(--text-primary);
-  font-size: 13px;
+  font-size: 16px;
 }
 .modal__search:focus { outline: none; border-color: var(--accent-border); }
 .modal__search::placeholder { color: var(--text-muted); }
@@ -870,7 +879,7 @@ body {
   gap: 6px;
   text-align: center;
   color: var(--text-primary);
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 500;
   transition: background 0.15s, border-color 0.15s;
 }
@@ -915,7 +924,7 @@ body {
 }
 .png-preview__hint {
   margin: 0;
-  font-size: 12.5px;
+  font-size: 15.5px;
   line-height: 1.5;
   color: var(--text-secondary);
   text-align: center;
@@ -934,7 +943,7 @@ body {
   background: var(--accent);
   color: #0b0d12;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 16px;
   padding: 10px 18px;
   border-radius: var(--radius-sm);
   text-decoration: none;
