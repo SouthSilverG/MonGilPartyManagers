@@ -34,10 +34,17 @@
             <span class="brand__subtitle">파티 에디터</span>
           </div>
         </div>
-        <button id="btnSavePng" class="btn-save-png">
-          <span class="btn-save-png__icon">⬇</span>
-          저장 (PNG)
-        </button>
+        <div class="toolbar__actions">
+          <button id="btnUploadPng" class="btn-upload-png" type="button">
+            <span class="btn-upload-png__icon">⬆</span>
+            업로드 (PNG)
+          </button>
+          <input id="uploadPngInput" type="file" accept="image/png" style="display: none" />
+          <button id="btnSavePng" class="btn-save-png">
+            <span class="btn-save-png__icon">⬇</span>
+            저장 (PNG)
+          </button>
+        </div>
       </header>
 
       <main id="captureArea" class="board">

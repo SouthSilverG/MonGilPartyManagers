@@ -506,6 +506,225 @@ function openRingOptionModal(slotIndex, ringKey, startOptIndex) {
   });
 }
 
+/* ---------- PNG 안에 파티 데이터 숨기기 (업로드 기능용) ----------
+   저장(PNG)을 누르면, 화면에는 안 보이지만 파일 안에는 지금 파티 상태
+   (캐릭터 / 몬스터링 / 몬스터링 옵션 / 장비 / 파티 이름 / 컨텐츠 / 비고)를
+   그대로 텍스트(JSON)로 같이 저장해 둡니다. PNG 파일 형식에 있는 "iTXt"라는,
+   화면에는 전혀 보이지 않는 텍스트 전용 조각(청크)을 이용합니다.
+   나중에 그 PNG를 업로드하면 이 데이터를 다시 읽어서 파티를 그대로
+   복원합니다. (이 도구에서 저장한 PNG가 아니면 이 데이터가 없어서
+   복원할 수 없습니다.) */
+
+const PARTY_PNG_KEYWORD = "mongil-stardive-party";
+const PARTY_PNG_SCHEMA = 1;
+
+const CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) {
+      c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1;
+    }
+    table[n] = c >>> 0;
+  }
+  return table;
+})();
+
+function crc32(bytes) {
+  let c = 0xffffffff;
+  for (let i = 0; i < bytes.length; i++) {
+    c = CRC_TABLE[(c ^ bytes[i]) & 0xff] ^ (c >>> 8);
+  }
+  return (c ^ 0xffffffff) >>> 0;
+}
+
+function writeUint32BE(value) {
+  return new Uint8Array([
+    (value >>> 24) & 0xff,
+    (value >>> 16) & 0xff,
+    (value >>> 8) & 0xff,
+    value & 0xff,
+  ]);
+}
+
+function readUint32BE(bytes, offset) {
+  return (
+    ((bytes[offset] << 24) |
+      (bytes[offset + 1] << 16) |
+      (bytes[offset + 2] << 8) |
+      bytes[offset + 3]) >>>
+    0
+  );
+}
+
+function concatBytes(chunks) {
+  const total = chunks.reduce((sum, c) => sum + c.length, 0);
+  const out = new Uint8Array(total);
+  let offset = 0;
+  chunks.forEach((c) => {
+    out.set(c, offset);
+    offset += c.length;
+  });
+  return out;
+}
+
+const PNG_SIGNATURE = [137, 80, 78, 71, 13, 10, 26, 10];
+
+function checkPngSignature(bytes) {
+  if (bytes.length < 8) return false;
+  for (let i = 0; i < 8; i++) {
+    if (bytes[i] !== PNG_SIGNATURE[i]) return false;
+  }
+  return true;
+}
+
+// PNG 파일(ArrayBuffer)의 맨 처음 IHDR 조각 바로 뒤에, 파티 데이터를 담은
+// iTXt 조각을 끼워 넣은 새 PNG 바이트를 만들어 돌려줍니다.
+function embedPartyDataInPng(arrayBuffer, jsonText) {
+  const bytes = new Uint8Array(arrayBuffer);
+  if (!checkPngSignature(bytes)) {
+    throw new Error("PNG 파일 형식이 아닙니다.");
+  }
+
+  const firstChunkDataLength = readUint32BE(bytes, 8);
+  const firstChunkType = String.fromCharCode(bytes[12], bytes[13], bytes[14], bytes[15]);
+  if (firstChunkType !== "IHDR") {
+    throw new Error("PNG 파일 형식이 올바르지 않습니다(IHDR 없음).");
+  }
+  const ihdrEnd = 8 + 4 + 4 + firstChunkDataLength + 4; // signature + (len+type+data+crc)
+
+  const keywordBytes = new TextEncoder().encode(PARTY_PNG_KEYWORD);
+  const textBytes = new TextEncoder().encode(jsonText);
+  const chunkData = concatBytes([
+    keywordBytes,
+    new Uint8Array([0]), // keyword 뒤 null 종료
+    new Uint8Array([0, 0]), // 압축 플래그(0=비압축) + 압축 방식(0)
+    new Uint8Array([0]), // 빈 언어 태그 + null 종료
+    new Uint8Array([0]), // 빈 번역된 키워드 + null 종료
+    textBytes,
+  ]);
+
+  const chunkType = new TextEncoder().encode("iTXt");
+  const crc = crc32(concatBytes([chunkType, chunkData]));
+
+  const newChunk = concatBytes([
+    writeUint32BE(chunkData.length),
+    chunkType,
+    chunkData,
+    writeUint32BE(crc),
+  ]);
+
+  return concatBytes([bytes.slice(0, ihdrEnd), newChunk, bytes.slice(ihdrEnd)]);
+}
+
+// 업로드된 PNG(ArrayBuffer)에서 파티 데이터(JSON 문자열)를 찾아 돌려줍니다.
+// 이 도구가 저장한 PNG가 아니거나(데이터 없음) 손상된 파일이면 null을
+// 돌려줍니다.
+function extractPartyDataFromPng(arrayBuffer) {
+  const bytes = new Uint8Array(arrayBuffer);
+  if (!checkPngSignature(bytes)) return null;
+
+  let offset = 8;
+  while (offset + 8 <= bytes.length) {
+    const dataLength = readUint32BE(bytes, offset);
+    const type = String.fromCharCode(
+      bytes[offset + 4],
+      bytes[offset + 5],
+      bytes[offset + 6],
+      bytes[offset + 7]
+    );
+    const dataStart = offset + 8;
+    const dataEnd = dataStart + dataLength;
+    if (dataLength < 0 || dataEnd > bytes.length) break; // 손상된 파일
+
+    if (type === "iTXt") {
+      const chunkBytes = bytes.slice(dataStart, dataEnd);
+      let p = 0;
+      while (p < chunkBytes.length && chunkBytes[p] !== 0) p++;
+      const keyword = new TextDecoder().decode(chunkBytes.slice(0, p));
+      if (keyword === PARTY_PNG_KEYWORD) {
+        p++; // keyword의 null 종료 건너뛰기
+        const compressionFlag = chunkBytes[p];
+        p += 2; // 압축 플래그 + 압축 방식
+        if (compressionFlag !== 0) return null; // 압축된 텍스트는 지원하지 않음
+        while (p < chunkBytes.length && chunkBytes[p] !== 0) p++;
+        p++; // 언어 태그 null 종료
+        while (p < chunkBytes.length && chunkBytes[p] !== 0) p++;
+        p++; // 번역된 키워드 null 종료
+        return new TextDecoder("utf-8").decode(chunkBytes.slice(p));
+      }
+    }
+
+    if (type === "IEND") break;
+    offset = dataEnd + 4; // +4는 CRC
+  }
+  return null;
+}
+
+// 지금 파티 상태를 JSON 문자열로 만듭니다(PNG 안에 숨겨 저장할 내용).
+function buildPartyExportPayload() {
+  return JSON.stringify({
+    app: PARTY_PNG_KEYWORD,
+    schema: PARTY_PNG_SCHEMA,
+    partyTitle: state.partyTitle,
+    contentId: state.contentId,
+    remarks: document.getElementById("remarksText").value,
+    slots: state.slots,
+  });
+}
+
+// PNG에서 꺼낸 JSON 문자열을 검증하고, 지금 화면(파티 상태)에 그대로
+// 반영합니다. 형식이 이상하면 에러를 던집니다(호출하는 쪽에서 alert로 안내).
+function applyImportedPartyPayload(jsonText) {
+  let data;
+  try {
+    data = JSON.parse(jsonText);
+  } catch (err) {
+    throw new Error("파티 데이터를 읽는 데 실패했습니다(JSON 형식 오류).");
+  }
+  if (!data || typeof data !== "object" || !Array.isArray(data.slots)) {
+    throw new Error("파티 데이터 형식이 올바르지 않습니다.");
+  }
+
+  const newSlots = Array.from({ length: SLOT_COUNT }, createEmptySlot);
+  data.slots.slice(0, SLOT_COUNT).forEach((savedSlot, i) => {
+    if (!savedSlot || typeof savedSlot !== "object") return;
+    const fresh = createEmptySlot();
+    fresh.character = typeof savedSlot.character === "string" ? savedSlot.character : null;
+
+    RING_KEYS.forEach((k) => {
+      const savedMonster = savedSlot.ringMonsters && savedSlot.ringMonsters[k];
+      fresh.ringMonsters[k] = typeof savedMonster === "string" ? savedMonster : null;
+
+      const savedRingArr =
+        savedSlot.rings && Array.isArray(savedSlot.rings[k]) ? savedSlot.rings[k] : [];
+      fresh.rings[k] = [0, 1, 2, 3].map((idx) => {
+        const v = savedRingArr[idx];
+        return typeof v === "string" ? v : null;
+      });
+    });
+
+    EQUIP_KEYS.forEach((k) => {
+      const savedEquip = savedSlot.equipment && savedSlot.equipment[k];
+      fresh.equipment[k] = typeof savedEquip === "string" ? savedEquip : null;
+    });
+
+    newSlots[i] = fresh;
+  });
+
+  state.slots = newSlots;
+  state.partyTitle = typeof data.partyTitle === "string" ? data.partyTitle : "";
+  state.contentId = typeof data.contentId === "string" ? data.contentId : null;
+
+  partyTitleInput.value = state.partyTitle;
+  partyTitleAutoFilled = state.partyTitle.trim() === "";
+
+  document.getElementById("remarksText").value = typeof data.remarks === "string" ? data.remarks : "";
+
+  renderContentBox();
+  render();
+}
+
 /* ---------- PNG로 저장 ---------- */
 document.getElementById("btnSavePng").addEventListener("click", () => {
   // file:// 로 index.html을 직접 더블클릭해서 연 경우, 브라우저 보안 정책 때문에
@@ -532,9 +751,9 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
 
   const captureArea = document.getElementById("captureArea");
 
-  // html2canvas는 <textarea> 안의 글자를 실제 화면과 다르게 그려서,
-  // 비고란 텍스트의 맨 윗줄이 잘려 보이는 문제가 있습니다. 캡처하는
-  // 동안에만 textarea를 똑같이 생긴 일반 텍스트 박스(div)로 잠깐
+  // html2canvas는 <textarea>/<input> 같은 입력 요소 안의 글자를 실제
+  // 화면과 다르게(윗부분이 잘린 것처럼) 그리는 문제가 있습니다. 캡처하는
+  // 동안에만 이런 요소들을 똑같이 생긴 일반 텍스트 박스(div)로 잠깐
   // 바꿔치기해서 캡처하고, 끝나면 원래대로 되돌립니다.
   const remarksTextarea = document.getElementById("remarksText");
   const remarksClone = document.createElement("div");
@@ -547,9 +766,22 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
   remarksTextarea.insertAdjacentElement("afterend", remarksClone);
   remarksTextarea.classList.add("remarks__textarea--capture-hidden");
 
+  const partyTitleInputEl = document.getElementById("partyTitleInput");
+  const partyTitleClone = document.createElement("div");
+  partyTitleClone.className = "party-title-box__input party-title-box__input--capture-clone";
+  const partyTitleHasText = partyTitleInputEl.value.trim() !== "";
+  partyTitleClone.textContent = partyTitleHasText ? partyTitleInputEl.value : partyTitleInputEl.placeholder;
+  if (!partyTitleHasText) {
+    partyTitleClone.classList.add("party-title-box__input--capture-placeholder");
+  }
+  partyTitleInputEl.insertAdjacentElement("afterend", partyTitleClone);
+  partyTitleInputEl.classList.add("party-title-box__input--capture-hidden");
+
   const restoreRemarks = () => {
     remarksClone.remove();
     remarksTextarea.classList.remove("remarks__textarea--capture-hidden");
+    partyTitleClone.remove();
+    partyTitleInputEl.classList.remove("party-title-box__input--capture-hidden");
   };
 
   // 페이지를 아래로 스크롤한 상태에서 저장을 누르면 html2canvas가 스크롤
@@ -568,11 +800,23 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
       // toDataURL 대신 toBlob + objectURL을 사용합니다.
       // 이렇게 해야 브라우저가 일반적인 "파일 다운로드"로 인식해서
       // 기본 다운로드 폴더(예: 다운로드 폴더)로 저장해줍니다.
-      canvas.toBlob((blob) => {
+      canvas.toBlob(async (blob) => {
         if (!blob) {
           alert("PNG 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
           return;
         }
+
+        // 화면에는 안 보이지만, 파일 안에는 지금 파티 상태를 그대로 텍스트로
+        // 같이 저장해 둡니다. 나중에 "업로드 (PNG)"로 이 파일을 다시 올리면
+        // 이 데이터를 읽어서 파티를 그대로 복원할 수 있습니다.
+        try {
+          const originalBytes = await blob.arrayBuffer();
+          const embeddedBytes = embedPartyDataInPng(originalBytes, buildPartyExportPayload());
+          blob = new Blob([embeddedBytes], { type: "image/png" });
+        } catch (err) {
+          console.error("파티 데이터 저장 실패(이미지는 정상 저장됩니다):", err);
+        }
+
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
@@ -641,6 +885,46 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
     .finally(() => {
       restoreRemarks();
     });
+});
+
+/* ---------- PNG 업로드 (파티 복원) ---------- */
+const btnUploadPng = document.getElementById("btnUploadPng");
+const uploadPngInput = document.getElementById("uploadPngInput");
+
+btnUploadPng.addEventListener("click", () => {
+  uploadPngInput.click();
+});
+
+uploadPngInput.addEventListener("change", async () => {
+  const file = uploadPngInput.files && uploadPngInput.files[0];
+  // 같은 파일을 다시 선택해도 change 이벤트가 발생하도록 매번 비워둡니다.
+  uploadPngInput.value = "";
+  if (!file) return;
+
+  if (file.type && file.type !== "image/png" && !file.name.toLowerCase().endsWith(".png")) {
+    alert("PNG 파일만 업로드할 수 있습니다.");
+    return;
+  }
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const jsonText = extractPartyDataFromPng(arrayBuffer);
+    if (!jsonText) {
+      alert(
+        "이 PNG에서 파티 정보를 찾을 수 없습니다.\n\n" +
+          "이 도구의 \"저장 (PNG)\" 버튼으로 저장한 파일만 다시 불러올 수 있어요. " +
+          "다른 곳에서 받은 이미지이거나, 이 기능이 추가되기 전에 저장한 PNG일 수 있습니다."
+      );
+      return;
+    }
+    applyImportedPartyPayload(jsonText);
+  } catch (err) {
+    console.error("PNG 업로드 실패:", err);
+    alert(
+      "파티를 불러오는 중 문제가 발생했습니다.\n\n" +
+        (err && err.message ? err.message : err)
+    );
+  }
 });
 
 function showPngPreview(url, filename) {

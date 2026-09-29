@@ -102,6 +102,31 @@ body {
 .btn-save-png:active { transform: translateY(1px); }
 .btn-save-png__icon { font-size: 15px; }
 
+.toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-upload-png {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--accent);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  color: #fff;
+  padding: 9px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 16px;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn-upload-png:hover { background: #5b57e6; }
+.btn-upload-png:active { transform: translateY(1px); }
+.btn-upload-png__icon { font-size: 15px; }
+
 /* ---------- 좌측 사이드바 (파티 매니저 / 과금 효율 탭) ---------- */
 .app-shell {
   display: flex;
@@ -255,6 +280,18 @@ body {
 }
 .party-title-box__input:focus { outline: none; }
 .party-title-box__input::placeholder { color: var(--text-muted); }
+
+/* PNG 저장(html2canvas) 중에만 잠깐 쓰이는 대역(clone). html2canvas가
+   <input> 내부 글자를 화면과 다르게(위쪽이 잘린 것처럼) 그리는 문제를
+   피하려고, 캡처하는 동안에는 이 div가 입력창 자리를 대신합니다. */
+.party-title-box__input--capture-hidden { display: none; }
+.party-title-box__input--capture-clone {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
+}
+.party-title-box__input--capture-placeholder { color: var(--text-muted); }
 
 .content-box {
   grid-column: span 1;
