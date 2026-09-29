@@ -440,6 +440,68 @@ const RING_LABELS = {
 const LINK_CHAIN_RING = "ring1";
 
 /* -----------------------------------------------------------
+   3-1) 아티팩트 목록 (몬링 공식 아티팩트 도감 기준, 40종)
+   캐릭터 카드 우측 하단의 동그란 "아티팩트" 버튼을 누르면 여기 목록이
+   팝업으로 뜨고, 고르면 그 캐릭터의 아티팩트로 저장됩니다.
+   새 아티팩트가 추가되면 이미지 파일을 assets/artifacts/ 폴더에 넣고
+   여기에 항목만 추가하면 됩니다(다른 코드는 안 건드려도 됩니다).
+----------------------------------------------------------- */
+const ARTIFACTS = [
+  { id: "artifact_1100001", name: "파도치는 신념", image: "assets/artifacts/artifact_1100001.png" },
+  { id: "artifact_1100002", name: "광기 어린 투쟁", image: "assets/artifacts/artifact_1100002.png" },
+  { id: "artifact_1100004", name: "심장을 꿰뚫는 칼날", image: "assets/artifacts/artifact_1100004.png" },
+  { id: "artifact_1100005", name: "살의를 머금은 어둠", image: "assets/artifacts/artifact_1100005.png" },
+  { id: "artifact_1100007", name: "잠식하는 균열", image: "assets/artifacts/artifact_1100007.png" },
+  { id: "artifact_1100008", name: "지축을 흔드는 격진", image: "assets/artifacts/artifact_1100008.png" },
+  { id: "artifact_1100010", name: "온빛을 품은 날개", image: "assets/artifacts/artifact_1100010.png" },
+  { id: "artifact_1100011", name: "생명의 두리별", image: "assets/artifacts/artifact_1100011.png" },
+  { id: "artifact_1100013", name: "피 흘리는 투쟁", image: "assets/artifacts/artifact_1100013.png" },
+  { id: "artifact_1100014", name: "지혜의 두리별", image: "assets/artifacts/artifact_1100014.png" },
+  { id: "artifact_1100015", name: "수호의 두리별", image: "assets/artifacts/artifact_1100015.png" },
+  { id: "artifact_1100020", name: "심판을 내리는 서릿발", image: "assets/artifacts/artifact_1100020.png" },
+  { id: "artifact_1100022", name: "바람이 서린 빗자루", image: "assets/artifacts/artifact_1100022.png" },
+  { id: "artifact_1100023", name: "화염의 구미호", image: "assets/artifacts/artifact_1100023.png" },
+  { id: "artifact_1100024", name: "넘쳐 흐르는 사랑", image: "assets/artifacts/artifact_1100024.png" },
+  { id: "artifact_1100025", name: "올곧은 불의 검", image: "assets/artifacts/artifact_1100025.png" },
+  { id: "artifact_1100026", name: "굴복하지 않는 기사도", image: "assets/artifacts/artifact_1100026.png" },
+  { id: "artifact_1100027", name: "계산된 손익", image: "assets/artifacts/artifact_1100027.png" },
+  { id: "artifact_1100028", name: "숲을 가득 품은 꽃 향기", image: "assets/artifacts/artifact_1100028.png" },
+  { id: "artifact_1100029", name: "대자연의 벗", image: "assets/artifacts/artifact_1100029.png" },
+  { id: "artifact_1100030", name: "꿈을 꾸는 모험가", image: "assets/artifacts/artifact_1100030.png" },
+  { id: "artifact_1100031", name: "타오르는 용의 숨결", image: "assets/artifacts/artifact_1100031.png" },
+  { id: "artifact_1100032", name: "마음을 움직이는 선율", image: "assets/artifacts/artifact_1100032.png" },
+  { id: "artifact_1100033", name: "범사냥꾼의 마음가짐", image: "assets/artifacts/artifact_1100033.png" },
+  { id: "artifact_1100034", name: "그림자 연꽃", image: "assets/artifacts/artifact_1100034.png" },
+  { id: "artifact_1100035", name: "도깨비를 이끄는 자", image: "assets/artifacts/artifact_1100035.png" },
+  { id: "artifact_1100036", name: "초원을 수놓은 이슬", image: "assets/artifacts/artifact_1100036.png" },
+  { id: "artifact_1100037", name: "혈당 스파이크", image: "assets/artifacts/artifact_1100037.png" },
+  { id: "artifact_1100038", name: "군악대의 이레귤러", image: "assets/artifacts/artifact_1100038.png" },
+  { id: "artifact_1100039", name: "미래를 여는 열쇠", image: "assets/artifacts/artifact_1100039.png" },
+  { id: "artifact_1100040", name: "교룡의 백린", image: "assets/artifacts/artifact_1100040.png" },
+  { id: "artifact_1100041", name: "매의 비상", image: "assets/artifacts/artifact_1100041.png" },
+  { id: "artifact_1100042", name: "타락한 고귀", image: "assets/artifacts/artifact_1100042.png" },
+  { id: "artifact_1100043", name: "숨결을 삼키는 어둠", image: "assets/artifacts/artifact_1100043.png" },
+  { id: "artifact_1100044", name: "천둥을 부르는 격진", image: "assets/artifacts/artifact_1100044.png" },
+  { id: "artifact_1100046", name: "권선멸악", image: "assets/artifacts/artifact_1100046.png" },
+  { id: "artifact_1100049", name: "정의를 꿈꾸는 불꽃", image: "assets/artifacts/artifact_1100049.png" },
+  { id: "artifact_1100050", name: "사랑으로 물드는 여름날", image: "assets/artifacts/artifact_1100050.png" },
+  { id: "artifact_1100051", name: "영원의 피날레", image: "assets/artifacts/artifact_1100051.png" },
+  { id: "artifact_1199001", name: "갈구하는 괴물", image: "assets/artifacts/artifact_1199001.png" },
+];
+
+/* -----------------------------------------------------------
+   3-2) 전설 몬스터링 목록
+   캐릭터 카드의 "전설 몬스터링" 버튼을 누르면 여기 목록이 팝업으로 뜨고,
+   고르면 그 캐릭터의 전설 몬스터링으로 저장됩니다. 몬스터링1~3과 달리
+   옵션 4칸 없이 몬스터만 고르는 단순한 슬롯입니다.
+   새 전설 몬스터가 추가되면 이미지 파일을 assets/legend_monsters/
+   폴더에 넣고 여기에 항목만 추가하면 됩니다(다른 코드는 안 건드려도 됩니다).
+----------------------------------------------------------- */
+const LEGEND_MONSTERS = [
+  { id: "legendmons_001", name: "레기눌라", image: "assets/legend_monsters/legendmonster_001.png" },
+];
+
+/* -----------------------------------------------------------
    4) 슬롯 개수 (기본 3개). 늘리고 싶으면 이 숫자만 바꾸면 됩니다.
 ----------------------------------------------------------- */
 const SLOT_COUNT = 3;

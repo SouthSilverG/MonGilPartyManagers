@@ -61,7 +61,7 @@ function createEmptySlot() {
   });
   const equipment = {};
   EQUIP_KEYS.forEach((k) => (equipment[k] = null));
-  return { character: null, equipment, rings, ringMonsters };
+  return { character: null, artifact: null, legendMonster: null, equipment, rings, ringMonsters };
 }
 
 const state = {
@@ -114,10 +114,20 @@ function renderSlot(slot, slotIndex) {
   const charCard = document.createElement("div");
   charCard.className = "char-card";
 
-  const charBtn = document.createElement("button");
+  // charBtn 자체는 더 이상 이미지 자르기(overflow:hidden)를 담당하지 않습니다.
+  // 아티팩트 버튼이 이미지 경계 아래로 살짝 튀어나와야 하는데, overflow:hidden이
+  // 걸린 요소 안에 있으면 그 튀어나온 부분이 잘려버리기 때문입니다. 그래서 실제
+  // 이미지(또는 빈 상태 안내문구)는 별도의 안쪽 래퍼(.char-card__portrait)에
+  // 담아 거기에만 overflow:hidden을 적용하고, 아티팩트 버튼은 그 바깥(charBtn
+  // 바로 아래)에 형제로 둡니다. div를 쓰는 이유는 button 안에 button을 중첩할
+  // 수 없기 때문이며, 클릭 처리는 기존과 동일하게 data-action 위임으로 동작합니다.
+  const charBtn = document.createElement("div");
   charBtn.className = "char-card__button";
   charBtn.dataset.action = "character";
   charBtn.dataset.slotIndex = String(slotIndex);
+
+  const portrait = document.createElement("div");
+  portrait.className = "char-card__portrait";
 
   const charData = slot.character ? findById(CHARACTERS, slot.character) : null;
   if (charData) {
@@ -125,18 +135,60 @@ function renderSlot(slot, slotIndex) {
     img.loading = "lazy";
     img.src = imgOrPlaceholder(charData.image);
     img.alt = charData.name;
-    charBtn.appendChild(img);
+    portrait.appendChild(img);
   } else {
     charBtn.classList.add("char-card__button--empty");
     const plus = document.createElement("span");
     plus.className = "placeholder-plus";
     plus.textContent = "+";
-    charBtn.appendChild(plus);
+    portrait.appendChild(plus);
     const hint = document.createElement("span");
     hint.className = "placeholder-hint";
     hint.textContent = "캐릭터 선택";
-    charBtn.appendChild(hint);
+    portrait.appendChild(hint);
   }
+  charBtn.appendChild(portrait);
+
+  // 전설 몬스터링 버튼 (캐릭터 이미지 우측 하단 구석에 겹쳐서 표시되는 동그란
+  // 버튼). 캐릭터 선택 여부와 상관없이 항상 표시되며, 선택되면 아이콘 아래에
+  // 이름표를 따로 붙여서 보여줍니다. (아티팩트는 더 이상 초상화 위에 겹쳐
+  // 표시되지 않고, 이름 아래에 긴 막대 형태로 따로 표시됩니다 - 아래 참고.)
+  const legendWrap = document.createElement("div");
+  legendWrap.className = "legend-monster-slot";
+
+  const legendMonsterBtn = document.createElement("button");
+  legendMonsterBtn.type = "button";
+  legendMonsterBtn.className = "slot-badge-btn";
+  legendMonsterBtn.dataset.action = "legend-monster";
+  legendMonsterBtn.dataset.slotIndex = String(slotIndex);
+
+  const legendMonsterData = slot.legendMonster ? findById(LEGEND_MONSTERS, slot.legendMonster) : null;
+  if (legendMonsterData) {
+    legendMonsterBtn.classList.add("slot-badge-btn--filled");
+    legendMonsterBtn.title = legendMonsterData.name;
+    const img = document.createElement("img");
+    img.loading = "lazy";
+    img.src = imgOrPlaceholder(legendMonsterData.image);
+    img.alt = legendMonsterData.name;
+    legendMonsterBtn.appendChild(img);
+  } else {
+    legendMonsterBtn.title = "전설 몬스터링 선택";
+    const label = document.createElement("span");
+    label.className = "slot-badge-btn__label";
+    label.textContent = "전설\n몬스터링";
+    legendMonsterBtn.appendChild(label);
+  }
+  legendWrap.appendChild(legendMonsterBtn);
+
+  if (legendMonsterData) {
+    const nameEl = document.createElement("div");
+    nameEl.className = "legend-monster-slot__name";
+    nameEl.textContent = legendMonsterData.name;
+    legendWrap.appendChild(nameEl);
+  }
+
+  charBtn.appendChild(legendWrap);
+
   charCard.appendChild(charBtn);
 
   const charName = document.createElement("div");
@@ -165,6 +217,35 @@ function renderSlot(slot, slotIndex) {
     charName.textContent = "캐릭터를 선택하세요";
   }
   charCard.appendChild(charName);
+
+  // 아티팩트 막대 (캐릭터 이름 바로 아래, 카드 폭 전체를 쓰는 긴 사각형).
+  // 선택 전에는 안내 문구만, 선택하면 아이콘 + 아티팩트 이름을 보여줍니다.
+  const artifactBar = document.createElement("button");
+  artifactBar.type = "button";
+  artifactBar.className = "artifact-bar";
+  artifactBar.dataset.action = "artifact";
+  artifactBar.dataset.slotIndex = String(slotIndex);
+
+  const artifactData = slot.artifact ? findById(ARTIFACTS, slot.artifact) : null;
+  if (artifactData) {
+    artifactBar.classList.add("artifact-bar--filled");
+    const img = document.createElement("img");
+    img.loading = "lazy";
+    img.src = imgOrPlaceholder(artifactData.image);
+    img.alt = artifactData.name;
+    artifactBar.appendChild(img);
+
+    const label = document.createElement("span");
+    label.className = "artifact-bar__label";
+    label.textContent = artifactData.name;
+    artifactBar.appendChild(label);
+  } else {
+    const label = document.createElement("span");
+    label.className = "artifact-bar__label artifact-bar__label--placeholder";
+    label.textContent = "아티팩트 선택 +";
+    artifactBar.appendChild(label);
+  }
+  charCard.appendChild(artifactBar);
 
   col.appendChild(charCard);
 
@@ -409,6 +490,28 @@ slotsEl.addEventListener("click", (e) => {
       items: CHARACTERS,
       onSelect: (id) => {
         slot.character = id;
+        closeModal();
+        render();
+      },
+    });
+  } else if (action === "artifact") {
+    openModal({
+      title: "아티팩트 선택",
+      items: ARTIFACTS,
+      getSelectedIds: () => new Set(slot.artifact ? [slot.artifact] : []),
+      onSelect: (id) => {
+        slot.artifact = id;
+        closeModal();
+        render();
+      },
+    });
+  } else if (action === "legend-monster") {
+    openModal({
+      title: "전설 몬스터링 선택",
+      items: LEGEND_MONSTERS,
+      getSelectedIds: () => new Set(slot.legendMonster ? [slot.legendMonster] : []),
+      onSelect: (id) => {
+        slot.legendMonster = id;
         closeModal();
         render();
       },
@@ -691,6 +794,8 @@ function applyImportedPartyPayload(jsonText) {
     if (!savedSlot || typeof savedSlot !== "object") return;
     const fresh = createEmptySlot();
     fresh.character = typeof savedSlot.character === "string" ? savedSlot.character : null;
+    fresh.artifact = typeof savedSlot.artifact === "string" ? savedSlot.artifact : null;
+    fresh.legendMonster = typeof savedSlot.legendMonster === "string" ? savedSlot.legendMonster : null;
 
     RING_KEYS.forEach((k) => {
       const savedMonster = savedSlot.ringMonsters && savedSlot.ringMonsters[k];

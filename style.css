@@ -451,6 +451,7 @@ body {
 
 /* ---------- 캐릭터 카드 ---------- */
 .char-card {
+  position: relative;
   border-radius: var(--radius-md);
   overflow: hidden;
   border: 1px solid var(--border);
@@ -463,16 +464,9 @@ body {
   background: transparent;
   border: none;
   cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
   padding: 0;
   color: var(--text-muted);
-  transition: background 0.15s;
   position: relative;
-  overflow: hidden;
 }
 
 .char-card__button--empty {
@@ -485,6 +479,24 @@ body {
   border-color: var(--accent-border);
   background: var(--accent-soft);
   color: var(--text-secondary);
+}
+.char-card__button--empty:hover .char-card__portrait {
+  background: var(--accent-soft);
+}
+
+/* 실제 이미지(또는 빈 상태 안내문구)를 담는 안쪽 래퍼입니다. 이미지 확대/
+   자르기(overflow:hidden)는 여기서만 적용되고, charBtn 자체는 overflow가
+   visible이라 형제로 붙는 아티팩트 버튼이 아래로 튀어나와도 잘리지 않습니다. */
+.char-card__portrait {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  overflow: hidden;
+  transition: background 0.15s;
 }
 
 .char-card__button .placeholder-plus {
@@ -543,6 +555,132 @@ body {
   width: 1.15em;
   height: 1.15em;
   object-fit: contain;
+}
+
+/* ---------- 전설 몬스터링 버튼 (캐릭터 카드 우측 하단 구석, 이미지 안쪽에 겹쳐 표시) ---------- */
+/* 이름 표시줄(.char-card__name)과 겹치지 않도록 bottom을 양수로 두어
+   이미지 영역 안쪽에서만 걸치게 하고, 채도를 낮춘 어두운 톤으로 통일했습니다. */
+.slot-badge-btn {
+  position: absolute;
+  bottom: 6%;
+  width: 29%;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  background: linear-gradient(160deg, #3a3d44, #16171c);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  padding: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  transition: transform 0.12s, box-shadow 0.12s, border-color 0.12s;
+}
+
+.slot-badge-btn:hover {
+  transform: scale(1.06);
+  border-color: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.6);
+}
+
+.slot-badge-btn__label {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  white-space: pre-line;
+  padding: 0 4px;
+}
+
+.slot-badge-btn--filled {
+  background: #0d0e12;
+}
+
+.slot-badge-btn--filled img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 14%;
+  box-sizing: border-box;
+}
+
+/* 전설 몬스터링은 이미지 우측 하단 구석을 차지합니다. 원 버튼 + (선택 시)
+   그 아래 이름표를 함께 담는 래퍼를 통째로 위치시키고, 안의 버튼 자체는
+   더 이상 개별적으로 위치를 잡지 않도록 position을 static으로 되돌립니다. */
+.legend-monster-slot {
+  position: absolute;
+  right: 6%;
+  bottom: 6%;
+  width: 29%;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.legend-monster-slot .slot-badge-btn {
+  position: static;
+  width: 100%;
+}
+
+.legend-monster-slot__name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85), 0 0 2px rgba(0, 0, 0, 0.85);
+}
+
+/* ---------- 아티팩트 막대 (캐릭터 이름 바로 아래, 카드 폭 전체) ---------- */
+.artifact-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--panel-2);
+  border: none;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  color: var(--text-secondary);
+  transition: background 0.15s, color 0.15s;
+}
+
+.artifact-bar:hover {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+.artifact-bar img {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.artifact-bar__label {
+  font-size: 16px;
+  font-weight: 700;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.artifact-bar__label--placeholder {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.artifact-bar--filled .artifact-bar__label {
+  color: var(--text-primary);
 }
 
 /* ---------- 몬스터링 ---------- */
@@ -623,8 +761,8 @@ body {
 }
 
 .ring-row__monster-icon {
-  width: 34px;
-  height: 34px;
+  width: 46px;
+  height: 46px;
   object-fit: cover;
   border-radius: var(--radius-sm);
   flex-shrink: 0;
