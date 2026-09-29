@@ -531,7 +531,39 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPadOS는 Mac으로 위장함
 
   const captureArea = document.getElementById("captureArea");
-  html2canvas(captureArea, { backgroundColor: "#101214", scale: 2, useCORS: true })
+
+  // html2canvas는 <textarea> 안의 글자를 실제 화면과 다르게 그려서,
+  // 비고란 텍스트의 맨 윗줄이 잘려 보이는 문제가 있습니다. 캡처하는
+  // 동안에만 textarea를 똑같이 생긴 일반 텍스트 박스(div)로 잠깐
+  // 바꿔치기해서 캡처하고, 끝나면 원래대로 되돌립니다.
+  const remarksTextarea = document.getElementById("remarksText");
+  const remarksClone = document.createElement("div");
+  remarksClone.className = "remarks__textarea remarks__textarea--capture-clone";
+  const remarksHasText = remarksTextarea.value.trim() !== "";
+  remarksClone.textContent = remarksHasText ? remarksTextarea.value : remarksTextarea.placeholder;
+  if (!remarksHasText) {
+    remarksClone.classList.add("remarks__textarea--capture-placeholder");
+  }
+  remarksTextarea.insertAdjacentElement("afterend", remarksClone);
+  remarksTextarea.classList.add("remarks__textarea--capture-hidden");
+
+  const restoreRemarks = () => {
+    remarksClone.remove();
+    remarksTextarea.classList.remove("remarks__textarea--capture-hidden");
+  };
+
+  // 페이지를 아래로 스크롤한 상태에서 저장을 누르면 html2canvas가 스크롤
+  // 위치를 고려하지 않아 화면 위쪽(파티 이름 등)이 잘려 나오는 경우가
+  // 있어서, 항상 스크롤이 0인 것처럼 캡처하도록 보정값을 함께 넘깁니다.
+  html2canvas(captureArea, {
+    backgroundColor: "#101214",
+    scale: 2,
+    useCORS: true,
+    scrollX: 0,
+    scrollY: -window.scrollY,
+    windowWidth: document.documentElement.scrollWidth,
+    windowHeight: document.documentElement.scrollHeight,
+  })
     .then((canvas) => {
       // toDataURL 대신 toBlob + objectURL을 사용합니다.
       // 이렇게 해야 브라우저가 일반적인 "파일 다운로드"로 인식해서
@@ -605,6 +637,9 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
           (err && err.message ? err.message : err) +
           "\n\n브라우저 콘솔(F12)에서 자세한 오류를 확인할 수 있습니다."
       );
+    })
+    .finally(() => {
+      restoreRemarks();
     });
 });
 

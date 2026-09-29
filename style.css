@@ -747,6 +747,18 @@ body {
   line-height: 1.5;
 }
 .remarks__textarea::placeholder { color: var(--text-muted); }
+
+/* PNG 저장(html2canvas) 중에만 잠깐 쓰이는 대역(clone). html2canvas가
+   textarea 내부 글자를 화면과 다르게 그리는 문제를 피하려고, 캡처하는
+   동안에는 이 div가 textarea 자리를 대신합니다. */
+.remarks__textarea--capture-hidden { display: none; }
+.remarks__textarea--capture-clone {
+  white-space: pre-wrap;
+  overflow: hidden;
+  word-break: break-word;
+  box-sizing: border-box;
+}
+.remarks__textarea--capture-placeholder { color: var(--text-muted); }
 .remarks__textarea:focus {
   outline: none;
   border-color: var(--accent-border);
