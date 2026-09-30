@@ -355,6 +355,8 @@ const EQUIPMENT = {
     { id: "hat_haneuibaram", name: "하늬바람", image: "assets/equipment/hat_haneuibaram.png" },
     { id: "hat_ancient_tree", name: "천 년 묵은 고목", image: "assets/equipment/hat_ancient_tree.png" },
     { id: "hat_swamp_lord", name: "습지의 주인", image: "assets/equipment/hat_swamp_lord.png" },
+     { id: "hats_unknown", name: "이름 없는 자", image: "assets/equipment/hats_unknown.png" },
+     { id: "hats_icedes", name: "무자비한 파괴자", image: "assets/equipment/hats_icedes.png" },
   ],
   top: [
     { id: "top_gourmand_realm", name: "식신의 경지", image: "assets/equipment/top_gourmand_realm.png" },
@@ -372,6 +374,8 @@ const EQUIPMENT = {
     { id: "top_ancient_tree", name: "천 년 묵은 고목", image: "assets/equipment/top_ancient_tree.png" },
     { id: "top_swamp_lord", name: "습지의 주인", image: "assets/equipment/top_swamp_lord.png" },
     { id: "top_blooming_peach", name: "만개한 도화", image: "assets/equipment/top_blooming_peach.png" },
+     { id: "top_unknown", name: "이름 없는 자", image: "assets/equipment/top_unknown.png" },
+     { id: "top_icedes", name: "무자비한 파괴자", image: "assets/equipment/top_icedes.png" },
   ],
   gloves: [
     { id: "gloves_eternal_frost_heart", name: "영원한 서리의 심장", image: "assets/equipment/gloves_eternal_frost_heart.png" },
@@ -389,6 +393,8 @@ const EQUIPMENT = {
     { id: "gloves_haneuibaram", name: "하늬바람", image: "assets/equipment/gloves_haneuibaram.png" },
     { id: "gloves_victory_general", name: "개선장군의 예장", image: "assets/equipment/gloves_victory_general.png" },
     { id: "gloves_swamp_lord", name: "습지의 주인", image: "assets/equipment/gloves_swamp_lord.png" },
+     { id: "gloves_unknown", name: "이름 없는 자", image: "assets/equipment/gloves_unknown.png" },
+     { id: "gloves_icedes", name: "무자비한 파괴자", image: "assets/equipment/gloves_icedes.png" },
   ],
   shoes: [
     { id: "shoes_vanguard_commander", name: "개전의 선봉대장", image: "assets/equipment/shoes_vanguard_commander.png" },
@@ -408,6 +414,8 @@ const EQUIPMENT = {
     { id: "shoes_victory_general", name: "개선장군의 예장", image: "assets/equipment/shoes_victory_general.png" },
     { id: "shoes_swamp_lord", name: "습지의 주인", image: "assets/equipment/shoes_swamp_lord.png" },
     { id: "shoes_blooming_peach", name: "만개한 도화", image: "assets/equipment/shoes_blooming_peach.png" },
+     { id: "shoes_unknown", name: "이름 없는 자", image: "assets/equipment/shoes_unknown.png" },
+     { id: "shoes_icedes", name: "무자비한 파괴자", image: "assets/equipment/shoes_icedes.png" },
   ],
 };
 
