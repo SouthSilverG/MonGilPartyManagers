@@ -493,6 +493,7 @@ const ARTIFACTS = [
   { id: "artifact_1100050", name: "사랑으로 물드는 여름날", image: "assets/artifacts/artifact_1100050.png" },
   { id: "artifact_1100051", name: "영원의 피날레", image: "assets/artifacts/artifact_1100051.png" },
   { id: "artifact_1199001", name: "갈구하는 괴물", image: "assets/artifacts/artifact_1199001.png" },
+  { id: "artifact_isabella", name: "안정된 초전도체", image: "assets/artifacts/artifact_isabella.png" },
 ];
 
 /* -----------------------------------------------------------
