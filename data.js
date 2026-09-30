@@ -43,6 +43,7 @@ const CHARACTERS = [
   { id: "char_verna", name: "베르나", image: "assets/characters/verna.jpg" },
   { id: "char_vivian", name: "비비안", image: "assets/characters/vivian.jpg" },
   { id: "char_bristol1", name: "브리셸", image: "assets/characters/Bristol.jpg" },
+   { id: "char_isabella", name: "이자벨라", image: "assets/characters/isabella.jpg" },
 ];
 
 /* -----------------------------------------------------------
@@ -90,6 +91,7 @@ const CHARACTER_ATTRIBUTES = {
   "프란시스": "earth",
   "플레아": "fire",
   "비비안": "fire",
+   "이자벨라": "ice",
 };
 
 /* -----------------------------------------------------------
