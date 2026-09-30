@@ -101,6 +101,7 @@ const CHARACTER_ATTRIBUTES = {
 const CONTENT_TABS = [
   { key: "raid", label: "토벌" },
   { key: "legend", label: "전설토벌" },
+  { key: "elementSanctuary", label: "속성의 성소" },
 ];
 
 const CONTENTS = {
@@ -114,6 +115,9 @@ const CONTENTS = {
   ],
   legend: [
     { id: "content_reginula", name: "레기눌라", image: "assets/contents/reginula.png" },
+    { id: "content_sorin", name: "소린", image: "assets/contents/sorin.png" },
+  ],
+  elementSanctuary: [
   ],
 };
 
@@ -499,6 +503,7 @@ const ARTIFACTS = [
 ----------------------------------------------------------- */
 const LEGEND_MONSTERS = [
   { id: "legendmons_001", name: "레기눌라", image: "assets/legend_monsters/legendmonster_001.png" },
+  { id: "legendmons_002", name: "소린", image: "assets/legend_monsters/legendmonster_002sorin.png" },
 ];
 
 /* -----------------------------------------------------------
