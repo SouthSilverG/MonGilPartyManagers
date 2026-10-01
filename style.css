@@ -1099,6 +1099,38 @@ body {
   border-color: rgba(239, 93, 122, 0.45);
 }
 
+/* ---------- 모달 페이지 네비게이션 (한 페이지에 너무 많은 항목이
+   한꺼번에 나오지 않도록 5줄씩 끊어서 보여주고, 아래 버튼으로 넘깁니다) ---------- */
+.modal__pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 10px 16px 14px;
+  border-top: 1px solid var(--border);
+}
+.modal__pager.hidden { display: none; }
+.modal__pager-btn {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.modal__pager-btn:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent-border); }
+.modal__pager-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.modal__pager-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 600;
+  min-width: 52px;
+  text-align: center;
+}
+
 /* ---------- PNG 저장 미리보기 ---------- */
 .png-preview { width: min(480px, 92vw); }
 .png-preview__body {

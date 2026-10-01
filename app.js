@@ -395,18 +395,36 @@ const modalTitle = document.getElementById("modalTitle");
 const modalList = document.getElementById("modalList");
 const modalSearch = document.getElementById("modalSearch");
 const modalClose = document.getElementById("modalClose");
+const modalPager = document.getElementById("modalPager");
+const modalPagerPrev = document.getElementById("modalPagerPrev");
+const modalPagerNext = document.getElementById("modalPagerNext");
+const modalPagerLabel = document.getElementById("modalPagerLabel");
 
 // modalContext.onSelect / onClear는 모달을 닫을지 계속 열어둘지까지 직접
 // 책임집니다(예: 몬스터링 옵션은 4개를 다 채울 때까지 계속 열어둠).
 // getSelectedIds()를 주면 이미 선택된 항목을 목록에서 강조 표시합니다.
-let modalContext = null; // { items, onSelect, onClear?, getSelectedIds? }
+let modalContext = null; // { items, onSelect, onClear?, getSelectedIds?, filteredItems, page }
+
+// 한 페이지에 보여줄 "줄" 수. 실제 몇 "개"를 보여줄지는 화면에 실제로
+// 몇 칸(열)짜리 그리드로 그려지는지에 따라 달라지므로(모달 너비에 따라
+// auto-fill로 칸 수가 바뀔 수 있음) 아래 computeModalColumns()로 지금
+// 그려진 실제 열 개수를 측정해서 "열 개수 * 이 줄 수"를 페이지당 개수로 씁니다.
+const MODAL_ROWS_PER_PAGE = 5;
+
+function computeModalColumns() {
+  const colsStr = window.getComputedStyle(modalList).gridTemplateColumns;
+  const cols = colsStr.split(" ").filter(Boolean).length;
+  return cols > 0 ? cols : 1;
+}
 
 function openModal({ title, items, onSelect, onClear, getSelectedIds }) {
-  modalContext = { items, onSelect, onClear, getSelectedIds };
+  modalContext = { items, onSelect, onClear, getSelectedIds, filteredItems: items, page: 0 };
   modalTitle.textContent = title;
   modalSearch.value = "";
-  renderModalList(items);
+  // 열 개수를 측정하려면 모달이 실제로 화면에 보여서 너비를 가진 다음이어야
+  // 하므로, 목록을 그리기 전에 먼저 보이게 합니다.
   modalOverlay.classList.remove("hidden");
+  renderModalList(items);
   modalSearch.focus();
 }
 
@@ -415,11 +433,30 @@ function closeModal() {
   modalContext = null;
 }
 
+// items: 검색어로 걸러진(또는 전체) 목록. 이 목록을 모달 상태에 저장해두고
+// 그중 현재 페이지에 해당하는 부분만 그립니다.
 function renderModalList(items) {
+  modalContext.filteredItems = items;
+  modalContext.page = 0;
+  renderModalPage();
+}
+
+function renderModalPage() {
   modalList.innerHTML = "";
 
   const selectedIds = modalContext.getSelectedIds ? modalContext.getSelectedIds() : null;
+  const items = modalContext.filteredItems;
 
+  const columns = computeModalColumns();
+  // "선택 해제" 버튼이 모든 페이지에 한 칸씩 차지하므로, 실제 항목은
+  // (페이지당 전체 칸 수 - 1)개씩 보여줘서 페이지마다 줄 수가 똑같이 맞도록 합니다.
+  const totalSlotsPerPage = Math.max(1, columns * MODAL_ROWS_PER_PAGE);
+  const itemsPerPage = Math.max(1, totalSlotsPerPage - 1);
+  const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
+  if (modalContext.page > totalPages - 1) modalContext.page = totalPages - 1;
+  if (modalContext.page < 0) modalContext.page = 0;
+
+  // "선택 해제" 버튼은 페이지를 넘겨도 계속 보이도록 모든 페이지 맨 앞에 둡니다.
   const clearItem = document.createElement("div");
   clearItem.className = "modal__item modal__item--clear";
   clearItem.textContent = "선택 해제";
@@ -432,7 +469,10 @@ function renderModalList(items) {
   });
   modalList.appendChild(clearItem);
 
-  items.forEach((item) => {
+  const start = modalContext.page * itemsPerPage;
+  const pageItems = items.slice(start, start + itemsPerPage);
+
+  pageItems.forEach((item) => {
     const el = document.createElement("div");
     el.className =
       "modal__item" + (selectedIds && selectedIds.has(item.id) ? " modal__item--selected" : "");
@@ -457,10 +497,32 @@ function renderModalList(items) {
 
     modalList.appendChild(el);
   });
+
+  // 페이지가 1개뿐이면 페이지 넘김 버튼 자체를 숨깁니다.
+  if (totalPages <= 1) {
+    modalPager.classList.add("hidden");
+  } else {
+    modalPager.classList.remove("hidden");
+    modalPagerLabel.textContent = `${modalContext.page + 1} / ${totalPages}`;
+    modalPagerPrev.disabled = modalContext.page === 0;
+    modalPagerNext.disabled = modalContext.page >= totalPages - 1;
+  }
 }
+
+modalPagerPrev.addEventListener("click", () => {
+  modalContext.page -= 1;
+  renderModalPage();
+});
+
+modalPagerNext.addEventListener("click", () => {
+  modalContext.page += 1;
+  renderModalPage();
+});
 
 modalSearch.addEventListener("input", () => {
   const q = modalSearch.value.trim().toLowerCase();
+  // 검색은 지금 보고 있는 페이지와 상관없이 항상 전체 목록(modalContext.items)
+  // 안에서 찾고, 결과가 나오면 다시 1페이지부터 보여줍니다.
   const filtered = modalContext.items.filter((it) =>
     it.name.toLowerCase().includes(q)
   );
