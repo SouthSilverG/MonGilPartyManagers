@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>몬스터링 도감</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar__brand">
+        <span class="app-sidebar__logo">MG</span>
+      </div>
+      <nav class="app-sidebar__nav">
+        <a href="../index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">🎮</span>
+          <span class="app-sidebar__label">파티 매니저</span>
+        </a>
+        <a href="index.html" class="app-sidebar__item is-active">
+          <span class="app-sidebar__icon">📖</span>
+          <span class="app-sidebar__label">몬스터링 도감</span>
+        </a>
+        <a href="../calculator/index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">₩</span>
+          <span class="app-sidebar__label">과금 효율</span>
+        </a>
+      </nav>
+    </aside>
+
+    <div class="app-content">
+      <header class="toolbar">
+        <div class="brand">
+          <span class="brand__mark">MG</span>
+          <div class="brand__text">
+            <span class="brand__title">몬길 STAR DIVE</span>
+            <span class="brand__subtitle">몬스터링 도감 (품종효과 / 링크체인)</span>
+          </div>
+        </div>
+      </header>
+
+      <div class="board monling-board">
+
+        <div class="monling-controls">
+          <input id="searchInput" class="monling-search" type="text" placeholder="몬스터 이름으로 검색..." />
+
+          <div class="monling-filter">
+            <label for="linkChainElementFilter">링크체인 속성</label>
+            <select id="linkChainElementFilter"><option value="">전체</option></select>
+          </div>
+
+          <div class="monling-filter">
+            <label for="breedElementFilter">품종 속성</label>
+            <select id="breedElementFilter"><option value="">전체</option></select>
+          </div>
+
+          <div class="monling-filter">
+            <label for="linkChainFilter">링크체인</label>
+            <select id="linkChainFilter">
+              <option value="">전체</option>
+              <option value="yes">있음</option>
+              <option value="no">없음</option>
+            </select>
+          </div>
+
+          <div class="monling-count" id="resultCount"></div>
+        </div>
+
+        <div class="monling-table-wrap">
+          <table class="monling-table">
+            <thead>
+              <tr>
+                <th class="col-icon">아이콘 / 이름</th>
+                <th class="col-element">링크체인<br />속성</th>
+                <th class="col-element">품종 속성<br /><span class="th-note">(속성 무관 효과는 공용)</span></th>
+                <th class="col-linkchain">링크체인<br />유무</th>
+                <th class="col-level">링크체인<br />레벨</th>
+                <th class="col-cooldown">쿨타임</th>
+                <th class="col-effect">품종 및 링크체인 효과</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="monling-notes">
+          <p>※ 링크체인 버프는 5초로 동일합니다.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

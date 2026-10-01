@@ -327,6 +327,7 @@ const MONSTERS = [
 { id: "mons_epi7_25", name: "하큐", image: "assets/monsters/epi7_25.png" },
 { id: "mons_epi7_26", name: "헌터피", image: "assets/monsters/epi7_26.png" },
 { id: "mons_epi7_27", name: "화이트론", image: "assets/monsters/epi7_27.png" },
+{ id: "MonNagi", name: "나기", image: "assets/monsters/MonNagi.png" },
 ];
 
 /* -----------------------------------------------------------
