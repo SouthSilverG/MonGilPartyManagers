@@ -358,6 +358,7 @@ const EQUIPMENT = {
     { id: "hat_swamp_lord", name: "습지의 주인", image: "assets/equipment/hat_swamp_lord.png" },
      { id: "hats_unknown", name: "이름 없는 자", image: "assets/equipment/hats_unknown.png" },
      { id: "hats_icedes", name: "무자비한 파괴자", image: "assets/equipment/hats_icedes.png" },
+     { id: "hats_blooming_peach", name: "만개한 도화", image: "assets/equipment/top_blooming_peach.png" },
   ],
   top: [
     { id: "top_gourmand_realm", name: "식신의 경지", image: "assets/equipment/top_gourmand_realm.png" },
@@ -374,7 +375,6 @@ const EQUIPMENT = {
     { id: "top_haneuibaram", name: "하늬바람", image: "assets/equipment/top_haneuibaram.png" },
     { id: "top_ancient_tree", name: "천 년 묵은 고목", image: "assets/equipment/top_ancient_tree.png" },
     { id: "top_swamp_lord", name: "습지의 주인", image: "assets/equipment/top_swamp_lord.png" },
-    { id: "top_blooming_peach", name: "만개한 도화", image: "assets/equipment/top_blooming_peach.png" },
      { id: "top_unknown", name: "이름 없는 자", image: "assets/equipment/top_unknown.png" },
      { id: "top_icedes", name: "무자비한 파괴자", image: "assets/equipment/top_icedes.png" },
   ],
