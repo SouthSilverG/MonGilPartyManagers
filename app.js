@@ -973,6 +973,9 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
           return;
         }
 
+        // "기록" 목록에도 이 파티를 남깁니다(실패해도 PNG 저장에는 영향 없음).
+        addHistoryEntry(buildPartyExportPayload());
+
         // 화면에는 안 보이지만, 파일 안에는 지금 파티 상태를 그대로 텍스트로
         // 같이 저장해 둡니다. 나중에 "업로드 (PNG)"로 이 파일을 다시 올리면
         // 이 데이터를 읽어서 파티를 그대로 복원할 수 있습니다.
@@ -1085,12 +1088,141 @@ uploadPngInput.addEventListener("change", async () => {
       return;
     }
     applyImportedPartyPayload(jsonText);
+    addHistoryEntry(jsonText); // 업로드한 파티도 "기록"에 남깁니다.
   } catch (err) {
     console.error("PNG 업로드 실패:", err);
     alert(
       "파티를 불러오는 중 문제가 발생했습니다.\n\n" +
         (err && err.message ? err.message : err)
     );
+  }
+});
+
+/* ---------- 기록(히스토리) ----------
+   "저장 (PNG)"을 누르거나 PNG를 "업로드"할 때마다 그 시점의 파티를 이 브라우저
+   (localStorage)에 한 건씩 쌓아 둡니다. 목록에는 파티 이름이 표시되고(이름이
+   같아도 각각 별도 기록), 항목을 누르면 현재 화면이 그 파티로 바뀝니다.
+   - 같은 PC/같은 브라우저에서만 보이고, 브라우저 데이터를 지우면 사라집니다.
+   - 최대 HISTORY_MAX건까지만 보관하고, 넘으면 가장 오래된 것부터 지웁니다. */
+const HISTORY_KEY = "monkil_party_history_v1";
+const HISTORY_MAX = 50;
+
+function loadHistory() {
+  try {
+    const raw = localStorage.getItem(HISTORY_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveHistory(list) {
+  try {
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+    return true;
+  } catch (e) {
+    return false; // 저장소가 막혀 있거나 가득 찬 경우에도 다른 기능은 그대로 동작
+  }
+}
+
+function addHistoryEntry(payloadJson) {
+  try {
+    const data = JSON.parse(payloadJson);
+    const title = data && typeof data.partyTitle === "string" ? data.partyTitle.trim() : "";
+    const list = loadHistory();
+    list.unshift({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      savedAt: Date.now(),
+      title,
+      payload: payloadJson,
+    });
+    saveHistory(list.slice(0, HISTORY_MAX));
+  } catch (e) {
+    // 기록 실패는 조용히 무시합니다.
+  }
+}
+
+const historyOverlay = document.getElementById("historyOverlay");
+const historyListEl = document.getElementById("historyList");
+
+function formatHistoryTime(ts) {
+  const d = new Date(ts);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+function renderHistoryList() {
+  const list = loadHistory();
+  historyListEl.innerHTML = "";
+  if (list.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "history-modal__empty";
+    empty.textContent = "아직 기록이 없습니다. 저장(PNG)하거나 PNG를 업로드하면 여기에 쌓여요.";
+    historyListEl.appendChild(empty);
+    return;
+  }
+  list.forEach((entry) => {
+    const row = document.createElement("div");
+    row.className = "history-item";
+
+    const main = document.createElement("div");
+    main.className = "history-item__main";
+    const t = document.createElement("div");
+    t.className = "history-item__title";
+    t.textContent = entry.title || "(이름 없는 파티)";
+    const time = document.createElement("div");
+    time.className = "history-item__time";
+    time.textContent = formatHistoryTime(entry.savedAt);
+    main.appendChild(t);
+    main.appendChild(time);
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "history-item__delete";
+    del.title = "이 기록 삭제";
+    del.textContent = "✕";
+    del.addEventListener("click", (e) => {
+      e.stopPropagation();
+      saveHistory(loadHistory().filter((x) => x.id !== entry.id));
+      renderHistoryList();
+    });
+
+    row.appendChild(main);
+    row.appendChild(del);
+    row.addEventListener("click", () => {
+      try {
+        applyImportedPartyPayload(entry.payload);
+        closeHistory();
+      } catch (err) {
+        alert("이 기록을 불러오지 못했습니다.\n\n" + (err && err.message ? err.message : err));
+      }
+    });
+    historyListEl.appendChild(row);
+  });
+}
+
+function openHistory() {
+  renderHistoryList();
+  historyOverlay.classList.remove("hidden");
+}
+function closeHistory() {
+  historyOverlay.classList.add("hidden");
+}
+
+document.getElementById("btnHistory").addEventListener("click", openHistory);
+document.getElementById("historyClose").addEventListener("click", closeHistory);
+historyOverlay.addEventListener("click", (e) => {
+  if (e.target === historyOverlay) closeHistory();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !historyOverlay.classList.contains("hidden")) closeHistory();
+});
+document.getElementById("historyClearAll").addEventListener("click", () => {
+  if (loadHistory().length === 0) return;
+  if (confirm("기록을 전부 삭제할까요?")) {
+    saveHistory([]);
+    renderHistoryList();
   }
 });
 

@@ -35,6 +35,10 @@
           </div>
         </div>
         <div class="toolbar__actions">
+          <button id="btnHistory" class="btn-history" type="button">
+            <span class="btn-history__icon">🕘</span>
+            기록
+          </button>
           <button id="btnUploadPng" class="btn-upload-png" type="button">
             <span class="btn-upload-png__icon">⬆</span>
             업로드 (PNG)
@@ -134,6 +138,21 @@
         <a id="pngPreviewDownload" class="png-preview__download" download target="_blank" rel="noopener">
           ⬇ 다운로드
         </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기록(히스토리) 팝업: 저장/업로드할 때마다 이 브라우저에 쌓인 파티 목록 -->
+  <div id="historyOverlay" class="modal-overlay hidden">
+    <div class="modal history-modal">
+      <div class="modal__header">
+        <h2>기록</h2>
+        <button id="historyClose" class="modal__close" aria-label="닫기">✕</button>
+      </div>
+      <div id="historyList" class="history-modal__list"></div>
+      <div class="history-modal__footer">
+        <span class="history-modal__hint">저장/업로드할 때마다 이 브라우저에 자동으로 쌓입니다. 클릭하면 현재 화면이 그 파티로 바뀝니다.</span>
+        <button id="historyClearAll" class="history-modal__clear" type="button">전체 삭제</button>
       </div>
     </div>
   </div>
