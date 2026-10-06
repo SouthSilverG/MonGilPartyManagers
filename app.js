@@ -1233,7 +1233,7 @@ document.getElementById("btnReset").addEventListener("click", () => {
 
 document.getElementById("historyClearAll").addEventListener("click", () => {
   if (loadHistory().length === 0) return;
-  if (confirm("기록을 전부 삭제할까요?")) {
+  if (confirm("기록을 모두 삭제하시겠습니까?")) {
     saveHistory([]);
     renderHistoryList();
   }
