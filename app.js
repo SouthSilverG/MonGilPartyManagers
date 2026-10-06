@@ -455,6 +455,7 @@ function renderModalPage() {
   const totalPages = Math.max(1, Math.ceil(items.length / itemsPerPage));
   if (modalContext.page > totalPages - 1) modalContext.page = totalPages - 1;
   if (modalContext.page < 0) modalContext.page = 0;
+  modalContext.totalPages = totalPages;
 
   // "선택 해제" 버튼은 페이지를 넘겨도 계속 보이도록 모든 페이지 맨 앞에 둡니다.
   const clearItem = document.createElement("div");
@@ -504,18 +505,21 @@ function renderModalPage() {
   } else {
     modalPager.classList.remove("hidden");
     modalPagerLabel.textContent = `${modalContext.page + 1} / ${totalPages}`;
-    modalPagerPrev.disabled = modalContext.page === 0;
-    modalPagerNext.disabled = modalContext.page >= totalPages - 1;
+    // 처음/마지막 페이지에서도 계속 누를 수 있게 순환합니다. (처음 → 이전 = 마지막, 마지막 → 다음 = 처음)
+    modalPagerPrev.disabled = false;
+    modalPagerNext.disabled = false;
   }
 }
 
 modalPagerPrev.addEventListener("click", () => {
-  modalContext.page -= 1;
+  const total = modalContext.totalPages || 1;
+  modalContext.page = modalContext.page <= 0 ? total - 1 : modalContext.page - 1;
   renderModalPage();
 });
 
 modalPagerNext.addEventListener("click", () => {
-  modalContext.page += 1;
+  const total = modalContext.totalPages || 1;
+  modalContext.page = modalContext.page >= total - 1 ? 0 : modalContext.page + 1;
   renderModalPage();
 });
 
@@ -1218,6 +1222,15 @@ historyOverlay.addEventListener("click", (e) => {
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !historyOverlay.classList.contains("hidden")) closeHistory();
 });
+// 초기화: 지금 화면(캐릭터/몬스터링/장비/파티 이름/컨텐츠/비고)을 전부 빈 상태로
+// 되돌립니다. 이미 쌓인 "기록"은 건드리지 않습니다.
+document.getElementById("btnReset").addEventListener("click", () => {
+  if (!confirm("현재 설정된 화면을 초기화하시겠습니까?")) return;
+  applyImportedPartyPayload(
+    JSON.stringify({ slots: [], partyTitle: "", contentId: null, remarks: "" })
+  );
+});
+
 document.getElementById("historyClearAll").addEventListener("click", () => {
   if (loadHistory().length === 0) return;
   if (confirm("기록을 전부 삭제할까요?")) {
