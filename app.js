@@ -1179,6 +1179,34 @@ function renderHistoryList() {
     time.className = "history-item__time";
     time.textContent = formatHistoryTime(entry.savedAt);
     main.appendChild(t);
+
+    // 이름과 날짜 사이에: 이 기록에 편성된 캐릭터(아이콘 + 이름)
+    const members = document.createElement("div");
+    members.className = "history-item__members";
+    let parsed = null;
+    try { parsed = JSON.parse(entry.payload); } catch (e) { parsed = null; }
+    const slotList = parsed && Array.isArray(parsed.slots) ? parsed.slots : [];
+    slotList.forEach((sl) => {
+      const c = sl && sl.character ? findById(CHARACTERS, sl.character) : null;
+      if (!c) return;
+      const chip = document.createElement("span");
+      chip.className = "history-item__member";
+      const ic = document.createElement("img");
+      ic.className = "history-item__member-icon";
+      ic.loading = "lazy";
+      ic.src = imgOrPlaceholder(c.image);
+      ic.alt = "";
+      const nm = document.createElement("span");
+      nm.textContent = c.name;
+      chip.appendChild(ic);
+      chip.appendChild(nm);
+      members.appendChild(chip);
+    });
+    if (!members.children.length) {
+      members.classList.add("history-item__members--empty");
+      members.textContent = "편성된 캐릭터 없음";
+    }
+    main.appendChild(members);
     main.appendChild(time);
 
     const del = document.createElement("button");

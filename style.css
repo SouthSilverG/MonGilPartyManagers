@@ -174,7 +174,32 @@ body {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.history-item__time { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
+.history-item__time { font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+.history-item__members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  margin-top: 6px;
+}
+.history-item__members--empty { font-size: 12.5px; color: var(--text-muted); }
+.history-item__member {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 2px 9px 2px 3px;
+}
+.history-item__member-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+}
 .history-item__delete {
   background: none;
   border: none;
