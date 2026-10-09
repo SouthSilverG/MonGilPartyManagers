@@ -117,8 +117,15 @@ const SECTIONS = [
    {
    title: "별빛 상점 (1.4 버전 상점 / 별빛 답례는 계산 안함 / 뽑기권만 추가)",
     items: [
+         {
+        name: "[별빛 상점] 특별팩",
+        type: "별빛 특별제안",
+        price: 4400,
+        limit: 1,
+        rewards: R({ destiny: 3, memory: 3, promise: 3 }),
+      },
       {
-        name: "[별빛 상점] 운명의 나침반 특 별팩",
+        name: "[별빛 상점] 운명의 나침반 특별 팩",
         type: "별빛 특별제안",
         price: 99000,
         limit: 2,
