@@ -114,6 +114,31 @@ const SECTIONS = [
       },
     ],
   },
+       title: "별빛 상점 (1.4 버전 상점 / 별빛 답례는 계산 안함 / 뽑기권만 추가)",
+    items: [
+      {
+        name: "[별빛 상점] 운명의 나침반 특 별팩",
+        type: "별빛 특별제안",
+        price: 99000,
+        limit: 2,
+        rewards: R({ destiny: 80 }),
+      },
+         {
+        name: "[별빛 상점] 기억의 나침반 특별 팩",
+        type: "별빛 특별제안",
+        price: 88000,
+        limit: 2,
+        rewards: R({ memory: 80 }),
+      },
+          {
+        name: "[별빛 상점] 약속의 나침반 특별 팩",
+        type: "별빛 특별제안",
+        price: 33000,
+        limit: 2,
+        rewards: R({ promise: 30 }),
+      },
+    ],
+  },
   {
     title: "기록의 정원",
     items: [
@@ -277,7 +302,7 @@ const SECTIONS = [
     ],
   },
   {
-    title: "스텝업",
+    title: "스텝업 (1.4버전은 별빛 상점에 있음 / 천재 공학도)",
     items: [
       {
         name: "픽업 캐릭터 스텝업 2",
@@ -379,6 +404,7 @@ const SECTIONS = [
       { name: "에피소드 4", price: 55000, limit: 1, rewards: R({ star: 4400 }) },
       { name: "에피소드 5", price: 55000, limit: 1, rewards: R({ star: 4400 }) },
       { name: "에피소드 6", price: 65000, limit: 1, rewards: R({ star: 7000 }) },
+      { name: "에피소드 7", price: 65000, limit: 1, rewards: R({ star: 7000 }) },
     ],
   },
   {
