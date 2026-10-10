@@ -555,3 +555,6 @@ const LEGEND_MONSTERS = [
    4) 슬롯 개수 (기본 3개). 늘리고 싶으면 이 숫자만 바꾸면 됩니다.
 ----------------------------------------------------------- */
 const SLOT_COUNT = 3;
+
+// Shared catalog additions for PNG interoperability.
+for(const [key,list] of Object.entries({characters:CHARACTERS,monsters:MONSTERS,artifacts:ARTIFACTS,legends:LEGEND_MONSTERS}))for(const item of {"characters": [{"id": "char_game_102501", "name": "클로에", "image": "assets/placeholder.svg"}, {"id": "char_game_104201", "name": "매드", "image": "assets/placeholder.svg"}, {"id": "char_game_104301", "name": "루", "image": "assets/placeholder.svg"}], "artifacts": [{"id": "artifact_1100047", "name": "격돌하는 폭주 열차", "image": "assets/extracted/ArtifactChloe.png"}], "monsters": [{"id": "monster_game_1201725", "name": "레기눌라", "image": "assets/extracted/MonsterlingReginula2.png"}, {"id": "monster_game_1201735", "name": "쵸피: 서머 다이브!", "image": "assets/extracted/MonsterlingChopySummer.png"}, {"id": "monster_game_1201745", "name": "슬라군: 서머 다이브!", "image": "assets/extracted/MonsterlingSlimeSummer.png"}, {"id": "monster_game_1201755", "name": "소라뇽: 서머 다이브!", "image": "assets/extracted/MonsterlingSoranyongSummer.png"}, {"id": "monster_game_1202035", "name": "소린", "image": "assets/extracted/MonsterlingSorin.png"}], "legends": []}[key]||[])if(!list.some(x=>x.id===item.id))list.push(item);

@@ -1,3 +1,4 @@
+let carriedDetailedStats=null;
 /* =====================================================================
    app.js — 화면을 그리고 클릭 동작을 처리합니다.
    보통은 이 파일을 건드릴 필요가 없습니다. 데이터만 바꾸려면 data.js를 수정하세요.
@@ -839,6 +840,7 @@ function buildPartyExportPayload() {
     contentId: state.contentId,
     remarks: document.getElementById("remarksText").value,
     slots: state.slots,
+    detailedStats: carriedDetailedStats,
   });
 }
 
@@ -885,6 +887,7 @@ function applyImportedPartyPayload(jsonText) {
 
   state.slots = newSlots;
   state.partyTitle = typeof data.partyTitle === "string" ? data.partyTitle : "";
+  carriedDetailedStats=data.detailedStats||null;
   state.contentId = typeof data.contentId === "string" ? data.contentId : null;
 
   partyTitleInput.value = state.partyTitle;
@@ -960,11 +963,12 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
   // 있어서, 항상 스크롤이 0인 것처럼 캡처하도록 보정값을 함께 넘깁니다.
   html2canvas(captureArea, {
     backgroundColor: "#101214",
+    onclone:doc=>{const board=doc.getElementById("captureArea");board.style.cssText="width:1440px;max-width:none;margin:0;padding:28px;box-sizing:border-box";},
     scale: 2,
     useCORS: true,
     scrollX: 0,
     scrollY: -window.scrollY,
-    windowWidth: document.documentElement.scrollWidth,
+    windowWidth: 1800,
     windowHeight: document.documentElement.scrollHeight,
   })
     .then((canvas) => {
@@ -1439,3 +1443,5 @@ renderContentBox();
 
 /* ---------- 초기 렌더 ---------- */
 render();
+
+(function(){const key='mongil-editor-handoff';document.querySelectorAll('.app-sidebar a').forEach(a=>a.addEventListener('click',()=>{try{sessionStorage.setItem(key,buildPartyExportPayload());}catch(e){}}));try{const saved=sessionStorage.getItem(key);if(saved){sessionStorage.removeItem(key);applyImportedPartyPayload(saved);}}catch(e){}})();

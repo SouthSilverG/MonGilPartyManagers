@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>몬길 스타다이브 파티 에디터</title>
 <link rel="stylesheet" href="style.css" />
+
 </head>
 <body>
 
@@ -16,7 +17,11 @@
       <nav class="app-sidebar__nav">
         <a href="index.html" class="app-sidebar__item is-active">
           <span class="app-sidebar__icon">🎮</span>
-          <span class="app-sidebar__label">파티 매니저</span>
+          <span class="app-sidebar__label">파티 에디터</span>
+        </a>
+        <a href="Statcal/index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">📊</span>
+          <span class="app-sidebar__label">상세 스탯 에디터</span>
         </a>
         <a href="calculator/index.html" class="app-sidebar__item">
           <span class="app-sidebar__icon">₩</span>
@@ -164,5 +169,9 @@
   <script src="vendor/html2canvas.min.js"></script>
   <script src="data.js"></script>
   <script src="app.js"></script>
+
+
+
+<script>if(location.hash==="#details")location.replace("Statcal/index.html");</script>
 </body>
 </html>
