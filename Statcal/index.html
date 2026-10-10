@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<base href="../" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>몬길 스타다이브 상세 스탯 에디터</title>
+<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="Statcal/stats-editor.css" />
+</head>
+<body>
+
+  <div class="app-shell">
+    <aside class="app-sidebar">
+      <div class="app-sidebar__brand">
+        <span class="app-sidebar__logo">MG</span>
+      </div>
+      <nav class="app-sidebar__nav">
+        <a href="index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">🎮</span>
+          <span class="app-sidebar__label">파티 에디터</span>
+        </a>
+        <a href="Statcal/index.html" class="app-sidebar__item is-active">
+          <span class="app-sidebar__icon">📊</span>
+          <span class="app-sidebar__label">상세 스탯 에디터</span>
+        </a>
+        <a href="calculator/index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">₩</span>
+          <span class="app-sidebar__label">과금 효율</span>
+        </a>
+      </nav>
+    </aside>
+
+    <div class="app-content">
+      <header class="toolbar">
+        <div class="brand">
+          <span class="brand__mark">MG</span>
+          <div class="brand__text">
+            <span class="brand__title">몬길 스타다이브</span>
+            <span class="brand__subtitle">파티 에디터</span>
+          </div>
+        </div>
+        <div class="toolbar__actions">
+          <button id="btnHistory" class="btn-history" type="button">
+            <span class="btn-history__icon">🕘</span>
+            기록
+          </button>
+          <button id="btnReset" class="btn-history" type="button">
+            <span class="btn-history__icon">↺</span>
+            초기화
+          </button>
+          <button id="btnUploadPng" class="btn-upload-png" type="button">
+            <span class="btn-upload-png__icon">⬆</span>
+            업로드 (PNG)
+          </button>
+          <input id="uploadPngInput" type="file" accept="image/png" style="display: none" />
+          <button id="btnSavePng" class="btn-save-png">
+            <span class="btn-save-png__icon">⬇</span>
+            저장 (PNG)
+          </button>
+        </div>
+      </header>
+
+      <main id="captureArea" class="board">
+        <div class="party-header">
+          <div class="party-title-box">
+            <input
+              id="partyTitleInput"
+              class="party-title-box__input"
+              type="text"
+              maxlength="40"
+              placeholder="파티 이름을 입력하세요"
+            />
+          </div>
+          <button id="contentBox" type="button" class="content-box content-box--empty">
+            <span class="content-box__plus">+</span>
+            <span class="content-box__label">컨텐츠 설정</span>
+          </button>
+        </div>
+
+        <div id="slots" class="slots"></div>
+        <section id="detailEditor" class="detail-editor hidden" aria-label="상세 스탯 에디터">
+          <div id="detailFoods" class="detail-foods"></div>
+          <details class="detail-formula"><summary>계산 기준과 적용 범위</summary><p>공격력 = (캐릭터 + 몬스터링 + 아티팩트 + 장비 5등급 18강 주옵션 + 입력한 장비 공격력) × (1 + 공격력 증가 합계 / 100). 치명타와 피해 증가는 퍼센트 포인트를 합산합니다. 조건부 효과 발동과 최대 중첩을 가정한 예상 스탯이며, 실시간 전투·실제 피해량 시뮬레이션은 아닙니다.</p><p>캐릭터·아티팩트는 60레벨 및 레벨 돌파 완료로 고정됩니다. 장비는 5등급 18강 주옵션을 자동 적용하며, 입력 공격력은 상수입니다. 치확·치피 및 몬스터링 옵션은 %로 입력하세요. 품종 스탯 A·B·C는 원본 그룹 구분입니다. 적용 대상은 원본 설명과 캐릭터 속성을 기준으로 판단하며, 계산 미지원 효과는 합산하지 않습니다. 속성의 성소는 상시 스탯 가호를 합산하며, 해금 스킬의 조건부 효과는 자동 계산하지 않습니다. 링크체인과 적에게 거는 효과는 제외합니다.</p></details>
+          <div id="detailSlots"></div>
+          <section id="detailEffects" class="detail-effects"></section>
+        </section>
+
+        <section class="remarks">
+          <label for="remarksText" class="remarks__label">비고란</label>
+          <textarea id="remarksText" class="remarks__textarea" placeholder="파티에 대한 설명이나 메모를 자유롭게 작성하세요."></textarea>
+        </section>
+
+        <footer class="site-footer">
+          <p class="site-footer__line">본 페이지는 팬이 제작한 비공식 페이지이며, 모든 이미지·데이터 및 상표의 권리는 각 권리자에게 있습니다.</p>
+          <p class="site-footer__line">© Netmarble Corp. &amp; Netmarble Monster Inc. All Rights Reserved.</p>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <!-- 개발자 블로그 바로가기 (플로팅 버튼) -->
+  <a
+    href="https://blog.naver.com/haryungame"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="dev-blog-fab"
+  >
+    <span class="dev-blog-fab__icon">✎</span>
+    <span class="dev-blog-fab__text">제작자 블로그</span>
+  </a>
+
+  <!-- 선택 팝업 (캐릭터 / 장비 / 몬스터링 옵션 공용) -->
+  <div id="modalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal__header">
+        <h2 id="modalTitle">선택</h2>
+        <button id="modalClose" class="modal__close" aria-label="닫기">✕</button>
+      </div>
+      <input id="modalSearch" class="modal__search" type="text" placeholder="검색..." />
+      <div id="modalList" class="modal__list"></div>
+      <div id="modalPager" class="modal__pager hidden">
+        <button id="modalPagerPrev" type="button" class="modal__pager-btn">← 이전</button>
+        <span id="modalPagerLabel" class="modal__pager-label">1 / 1</span>
+        <button id="modalPagerNext" type="button" class="modal__pager-btn">다음 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 컨텐츠 선택 팝업 (토벌 / 전설토벌 탭) -->
+  <div id="contentModalOverlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal__header">
+        <h2>컨텐츠 선택</h2>
+        <button id="contentModalClose" class="modal__close" aria-label="닫기">✕</button>
+      </div>
+      <div id="contentModalTabs" class="content-modal__tabs"></div>
+      <div id="contentModalGrid" class="content-modal__grid"></div>
+    </div>
+  </div>
+
+  <!-- PNG 저장 미리보기 (자동 다운로드가 안 되는 환경, 특히 모바일을 위한 대안) -->
+  <div id="pngPreviewOverlay" class="modal-overlay hidden">
+    <div class="modal png-preview">
+      <div class="modal__header">
+        <h2>PNG 저장</h2>
+        <button id="pngPreviewClose" class="modal__close" aria-label="닫기">✕</button>
+      </div>
+      <div class="png-preview__body">
+        <p class="png-preview__hint">
+          자동 다운로드가 시작되지 않았다면, 아래 이미지를 <strong>길게 눌러 "이미지 저장"</strong>을 선택하세요.
+        </p>
+        <img id="pngPreviewImage" class="png-preview__image" alt="파티 편성 PNG 미리보기" />
+        <a id="pngPreviewDownload" class="png-preview__download" download target="_blank" rel="noopener">
+          ⬇ 다운로드
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- 기록(히스토리) 팝업: 저장/업로드할 때마다 이 브라우저에 쌓인 파티 목록 -->
+  <div id="historyOverlay" class="modal-overlay hidden">
+    <div class="modal history-modal">
+      <div class="modal__header">
+        <h2>기록</h2>
+        <button id="historyClose" class="modal__close" aria-label="닫기">✕</button>
+      </div>
+      <div id="historyList" class="history-modal__list"></div>
+      <div class="history-modal__footer">
+        <span class="history-modal__hint">저장/업로드할 때마다 이 브라우저에 자동으로 쌓입니다. 클릭하면 현재 화면이 그 파티로 바뀝니다.</span>
+        <button id="historyClearAll" class="history-modal__clear" type="button">전체 삭제</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="data.js"></script>
+  <script src="Statcal/app.js"></script>
+  <script src="Statcal/stats-data.js"></script>
+  <script src="Statcal/stats-engine.js"></script>
+  <script src="Statcal/stats-editor.js"></script>
+</body>
+</html>
