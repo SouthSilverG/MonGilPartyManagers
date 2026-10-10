@@ -15,6 +15,9 @@
    각 항목: { id: 고유값(영문/숫자 추천), name: 표시될 이름, image: 이미지 경로 }
    이름을 더 다듬고 싶으면 name 값만 바꾸면 됩니다.
 ----------------------------------------------------------- */
+// User-excluded provisional characters: also reject legacy PNG selections.
+const EXCLUDED_CHARACTER_IDS = new Set(['char_game_102501','char_game_104201','char_game_104301']);
+const EXCLUDED_CHARACTER_NAMES = new Set(['클로에','매드','루']);
 const CHARACTERS = [
   { id: "char_francissummer", name: "프란시스: 서머 다이브!", image: "assets/characters/francissummer.jpg" },
   { id: "char_vernasummer", name: "베르나: 서머 다이브!", image: "assets/characters/vernasummer.jpg" },
