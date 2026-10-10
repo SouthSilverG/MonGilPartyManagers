@@ -862,7 +862,7 @@ function applyImportedPartyPayload(jsonText) {
   data.slots.slice(0, SLOT_COUNT).forEach((savedSlot, i) => {
     if (!savedSlot || typeof savedSlot !== "object") return;
     const fresh = createEmptySlot();
-    fresh.character = typeof savedSlot.character === "string" ? savedSlot.character : null;
+    fresh.character = typeof savedSlot.character === "string" && !EXCLUDED_CHARACTER_IDS.has(savedSlot.character) ? savedSlot.character : null;
     fresh.artifact = typeof savedSlot.artifact === "string" ? savedSlot.artifact : null;
     fresh.legendMonster = typeof savedSlot.legendMonster === "string" ? savedSlot.legendMonster : null;
 

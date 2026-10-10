@@ -1,7 +1,7 @@
 (function(){
  'use strict';
  const engine=MongilStatsEngine.make(STAT_DATA),E=engine;
- for(const [key,list] of Object.entries({characters:CHARACTERS,monsters:MONSTERS,artifacts:ARTIFACTS,legends:LEGEND_MONSTERS}))for(const item of STAT_DATA.additions[key]||[])if(!list.some(x=>x.id===item.id))list.push(item);
+ for(const [key,list] of Object.entries({characters:CHARACTERS,monsters:MONSTERS,artifacts:ARTIFACTS,legends:LEGEND_MONSTERS}))for(const item of STAT_DATA.additions[key]||[])if(!(key==='characters'&&(EXCLUDED_CHARACTER_IDS.has(item.id)||EXCLUDED_CHARACTER_NAMES.has(item.name)))&&!list.some(x=>x.id===item.id))list.push(item);
  let detail=E.defaults(),active=false,selectedCharacter=0;
  const area=document.getElementById('detailEditor'),container=document.getElementById('detailSlots');
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
