@@ -968,6 +968,10 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
       const detailActive = window.DetailedEditor && window.DetailedEditor.active;
       const inactive = doc.getElementById(detailActive ? 'slots' : 'detailEditor');
       if (inactive) inactive.remove();
+      // Preserve the live document's resolved content URL when the clone has a different base.
+      const contentImage = document.querySelector('#contentBox .content-box__image');
+      const clonedContentImage = doc.querySelector('#contentBox .content-box__image');
+      if(contentImage && clonedContentImage) clonedContentImage.style.backgroundImage = getComputedStyle(contentImage).backgroundImage;
       if(detailActive){
           const board=doc.getElementById('captureArea');board.classList.add('detail-export');
           board.style.cssText='width:1600px;max-width:none;margin:0;padding:24px;box-sizing:border-box';
@@ -1418,7 +1422,7 @@ function renderContentBox() {
     // 방식으로 하면 웹 화면과 PNG 저장 양쪽에서 똑같이 잘 잘려서 보입니다.
     const img = document.createElement("span");
     img.className = "content-box__image";
-    img.style.backgroundImage = `url("${item.image}")`;
+    img.style.backgroundImage = `url("${new URL(item.image, document.baseURI).href}")`;
     img.setAttribute("role", "img");
     img.setAttribute("aria-label", item.name);
     contentBox.appendChild(img);

@@ -89,3 +89,6 @@
 .detail-gear .equip-slot__value,.detail-gear .equip-slot__label{font-size:13px}
 .detail-gear .equip-slot img{width:46px;height:46px}
 @media(max-width:700px){.detail-controls .ring-slot__value{font-size:16px}.detail-gear-inputs .detail-field{font-size:13px}.detail-gear-inputs input{font-size:19px}}
+
+.detail-selection .artifact-bar__label{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;word-break:keep-all;line-height:1.45}
+.detail-selection .artifact-bar{height:auto;min-height:64px;padding:10px}
