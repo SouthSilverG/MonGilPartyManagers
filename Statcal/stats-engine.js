@@ -8,7 +8,7 @@
  const names={specialAtk:'특수 스킬 한정 공격력 증가',basicDamage:'기본 공격 피해',specialDamage:'특수 스킬 피해',ultimateDamage:'궁극 스킬 피해',tagDamage:'교체 스킬 피해',damageReduction:'받는 피해 감소',ultimateGauge:'궁극 스킬 충전율',roleFlat:'역할 특화',brawlerFlat:'난투',destroyerFlat:'파괴',slayerFlat:'암살',supporterFlat:'지원',atk:'공격력',def:'방어력',hp:'체력',crit:'치명타 확률',critDmg:'치명타 피해',penetration:'관통률',suppress:'제압 피해',groggy:'무력화 피해',weakness:'약점 속성 피해',boss:'보스 몬스터 피해',support:'지원 피해',brawl:'난전 피해',fire:'불 속성 피해',ice:'얼음 속성 피해',lightning:'번개 속성 피해',wind:'바람 속성 피해',earth:'땅 속성 피해',physical:'물리 속성 피해'};
  const plain=s=>String(s||'').replace(/<[^>]*>/g,'').replace(/\\n/g,'\n');
  function make(data){
-  const T=data.tables,L=data.local,rows=n=>Object.values(T[n]||{}),loc=k=>plain(L[k]||''),by=(n,f,v)=>rows(n).filter(r=>r[f]===v);
+  const T=data.tables,L=data.local,tableRows=new Map(),rows=n=>{if(!tableRows.has(n))tableRows.set(n,Object.values(T[n]||{}));return tableRows.get(n);},loc=k=>plain(L[k]||''),by=(n,f,v)=>rows(n).filter(r=>r[f]===v);
   const cache=new Map(),parameterGroups=new Map(),cantoOverrides=new Map();
   for(const [id,p] of Object.entries(T.ABILITY_PARAMETER)){const list=parameterGroups.get(p.ABILITY_GROUP_ID)||[];list.push({...p,sourceId:Number(id)});parameterGroups.set(p.ABILITY_GROUP_ID,list);}
   for(const p of rows('ABILITY_PARAMETER_CANTO')){const list=cantoOverrides.get(p.ABILITY_PARAMETER_ID)||[];list.push(p);cantoOverrides.set(p.ABILITY_PARAMETER_ID,list);}
@@ -39,6 +39,7 @@
     if(p.ABILITY_TYPE===1389&&fields[p.PARAM_1]&&fields[p.PARAM_3])conversions.push({from:fields[p.PARAM_1],to:fields[p.PARAM_3],truncatePercent:true,ratio:p.PARAM_2/1000000,cap:p.PARAM_4/(String(fields[p.PARAM_3]).endsWith('Flat')?1:100)});
     if(p.ABILITY_TYPE===10093&&fields[p.PARAM_1]&&({0:'basicDamage',1:'specialDamage',2:'ultimateDamage',3:'tagDamage',7:'support'})[p.PARAM_3])conversions.push({from:fields[p.PARAM_1],to:({0:'basicDamage',1:'specialDamage',2:'ultimateDamage',3:'tagDamage',7:'support'})[p.PARAM_3],ratio:p.PARAM_2/10000,cap:p.PARAM_4/100});
     if(p.ABILITY_TYPE===10048&&fields[p.PARAM_1]&&fields[p.PARAM_3])conversions.push({from:fields[p.PARAM_1],to:fields[p.PARAM_3],ratio:p.PARAM_2/10000,cap:p.PARAM_4/(String(fields[p.PARAM_3]).endsWith('Flat')?1:100)});
+    if(p.ABILITY_TYPE===10100&&fields[p.PARAM_1]&&fields[p.PARAM_3])conversions.push({from:fields[p.PARAM_1],to:fields[p.PARAM_3],ratio:p.PARAM_2/10000,cap:p.PARAM_4/100,sourceTarget:true});
    }
    const keyAliases=[['기본 공격 피해','basicDamage'],['특수 스킬 피해','specialDamage'],['궁극 스킬 피해','ultimateDamage'],['교체 스킬 피해','tagDamage'],['공격력','atk'],['방어력','def'],['최대 체력','hp'],['치명타 확률','crit'],['치명타 피해','critDmg'],['관통률','penetration'],['제압 피해','suppress'],['무력화 피해','groggy'],['약점 속성 피해','weakness'],['보스 몬스터 피해','boss'],['지원 피해','support'],['난전 피해','brawl'],['불 속성 피해','fire'],['얼음 속성 피해','ice'],['바람 속성 피해','wind'],['번개 속성 피해','lightning'],['땅 속성 피해','earth'],['물리 속성 피해','physical']];
    if(!conversions.length)for(const [label,key] of keyAliases){
@@ -48,6 +49,7 @@
    for(const p of pars)if(p.ABILITY_TYPE===1157){const key=({0:'basicDamage',1:'specialDamage',2:'ultimateDamage',3:'tagDamage',7:'support'})[p.PARAM_1];if(key&&!deltas.some(d=>d.key===key))deltas.push({key,value:p.PARAM_2/100});}
    if(!text&&conversions.length)text=conversions.map(c=>(names[c.from]||c.from)+'의 '+(c.ratio*100)+'%만큼 '+(names[c.to]||c.to)+' 증가'+(c.cap?' (최대 '+c.cap+'%)':'')).join(' / ');
    if(!deltas.some(d=>d.key==='penetration'))for(const p of pars)if(p.ABILITY_TYPE===1395)deltas.push({key:'penetration',value:p.PARAM_1/100});
+   if(!deltas.some(d=>d.key==='damageReduction'))for(const p of pars)if(p.ABILITY_TYPE===10016)deltas.push({key:'damageReduction',value:p.PARAM_1/100});
    const max=Math.max(1,...pars.map(p=>p.MAX_STACK||1),Number((text.match(/최대\s*(\d+)\s*(?:회|중첩)/)||[])[1])||1);
    const result={gid:Number(gid),title:loc(info.ABILITY_GROUP_TITLE_LOCAL)||'효과 '+gid,text,deltas,conversions,maxStack:max,conditional:/시[,\s]|동안|중첩|보유|적중|성공|피격|발동|일정|공격 시/.test(text),team:/모든 팀원|팀원의|팀원에게|파티원/.test(text),unsupported:!deltas.length&&!conversions.length,remainder};cache.set(ck,result);return result;
   }
@@ -117,18 +119,48 @@
     // Verified activation/target rules for the example party. Enhanced versions replace their base versions.
     const cid=Number(data.maps.characters[s.character]);
     let verified=[];
+    const replacements=[];
+    const replace=(family,gid,label,rules={})=>{replacements.push(...family);verified.push([gid,label,{conditional:true,...rules}]);};
+    if(cid===101701){
+     const base=q.canto>=2?101731:101705,modifier=q.canto>=4?101742:q.canto>=2?101733:101707;
+     const windParam=parameters(modifier,q.canto,q.skillLevel).find(p=>p.ABILITY_TYPE===1390&&p.PARAM_2===2);
+     const atkParam=parameters(modifier,q.canto,q.skillLevel).find(p=>p.ABILITY_TYPE===1390&&p.PARAM_2===1);
+     const deltas=[{key:'wind',value:10+(windParam?.PARAM_4||0)/100}];
+     if(q.canto>=2)deltas.push({key:'atk',value:2+(atkParam?.PARAM_4||0)/100});
+     if(q.canto>=6)deltas.push({key:'specialDamage',value:20},{key:'ultimateDamage',value:20});
+     replace([101705,101731,101707,101733,101742,101749,101750,101755],base,'지원 · 천상의 선율 / 최대 단계',{team:true,deltas});
+    }
+    if(cid===100401)replace([100416,100425],q.canto>=4?100425:100416,'프란시스 · 검진 결과',{team:true,exclusiveGroup:'medical-check'});
+    if(cid===101801){replace([101806,101816],q.canto>=6?101816:101806,'가비 · 목상 / 팀 땅 피해',{team:true});replace([101804,101817],q.canto>=6?101817:101804,'가비 · 목상 / 팀 방어력',{team:true});}
+    if(cid===103101){replace([103107,103111],q.canto>=2?103111:103107,'오필리아 · 자안의 마녀');replace([103114,103115],q.canto>=1?103115:103114,'오필리아 · 특수 스킬 / 지원 피해');}
+    if(cid===103501){replace([103503,103518],q.canto>=1?103518:103503,'엔젤 · 지원 후 교체 / 불 피해',{team:q.canto>=4});verified.push([10135,'엔젤 · 특수 스킬 / 피해 감소',{conditional:true}]);}
+    if(cid===103701){replace([103701,103706],q.canto>=6?103706:103701,'브리셸 · 관심 과부하');if(q.canto>=6)verified.push([103722,'브리셸 · 돌파 6 / 제압 피해 환산',{conditional:true}]);}
+    if(cid===103901){replace([103902,103919],q.canto>=6?103919:103902,'서머 베르나 · 불씨 / 최대 중첩');verified.push([103901,'서머 베르나 · 불타는 의지',{conditional:true}]);if(q.canto>=2)verified.push([103918,'서머 베르나 · 돌파 2 / 지원 피해',{conditional:true}]);}
+    if(cid===103301)verified.push([103319,'에스데 · 연막 / 바람 팀원 받는 피해 감소',{conditional:true,team:true,targetElement:5}]);
+    if(cid===103801)verified.push([103818,'메이벨 · 스킬 / 받는 피해 감소',{conditional:true}]);
+    // The skill action applies this team buff in the character asset, not ACTION_ABILITY_GROUP_ID.
+    if(cid===104101){
+     verified=[[104107,'비비안 · 특수 스킬 / 환상적인 무대',{team:true,conditional:true}],
+      [104133,'비비안 · 특수 스킬 / 받는 피해 감소',{team:true,conditional:true}],
+      [104111,'비비안 · 지원 스킬 / 보스 카드 마술',{team:true,conditional:true}],
+      [104118,'비비안 · 고유 특성 / 근거리 팀원 불 피해',{team:true,targetRange:1}],
+      [104113,'비비안 · 고유 특성 / 팀원 자신의 제압 피해 환산',{team:true}]];
+     if(q.canto>=1)verified.push([104125,'비비안 · 돌파 1 / 팀 공격력',{team:true,conditional:true}]);
+     if(q.canto>=6)verified.push([104140,'비비안 · 돌파 6 / 화끈한 연출',{team:true,conditional:true}]);
+    }
     if(cid===101401)verified=[[q.canto>=4?101435:101406,'나래 · 특수 스킬 / 얼음 팀원',{team:true,targetElement:3,conditional:true}], [101416,'나래 · 보호막 보유',{conditional:true}]];
     if(cid===101401)verified.push([q.canto>=4?101436:101432,'나래 · 얼음 팀원 특수 스킬 피해',{team:true,targetElement:3,conditional:true}],[q.canto>=4?101437:101433,'나래 · 얼음 외 원거리 팀원 특수 스킬 피해',{team:true,excludeElement:3,targetRange:2,conditional:true}]);
     if(cid===101401&&q.canto>=2)verified.push([101418,'나래 · 돌파 2 / 보호막 획득',{team:true,conditional:true}]);
     if(cid===101901)verified=[[101929,'이자벨라 · 빙결 발동',{conditional:true}],[101928,'이자벨라 · 빙결 / 무력화 피해 전환',{conditional:true}]];
     if(cid===101901)verified.push([101938,'이자벨라 · 특수 스킬 / 에너지 100 소모',{conditional:true}]);
+    if(cid===101901)verified.push([101940,'이자벨라 · 특수 스킬 / 에너지 피해 최대 중첩',{conditional:true}],[10136,'이자벨라 · 특수 스킬 / 받는 피해 감소',{conditional:true}]);
     if(cid===101901&&q.canto>=6)verified.push([101952,'이자벨라 · 돌파 6 / 빙결 발동',{conditional:true}]);
     if(cid===101901&&q.canto>=2)verified.push([101954,'이자벨라 · 에너지 획득',{conditional:true}]);
-    if(cid===104001)verified=[[q.canto>=6?104009:104007,'서머 프란시스 · 여름 검진 결과',{team:true,conditional:true}],[q.canto>=6?104008:104006,'서머 프란시스 · 땅 팀원',{team:true,targetElement:6,conditional:true}]];
+    if(cid===104001)verified=[[q.canto>=6?104009:104007,'서머 프란시스 · 여름 검진 결과',{team:true,conditional:true,exclusiveGroup:'medical-check'}],[q.canto>=6?104008:104006,'서머 프란시스 · 땅 팀원',{team:true,targetElement:6,conditional:true}]];
     if(cid===104001&&q.canto>=2)verified.push([104003,'서머 프란시스 · 돌파 2 / 지원·궁극 스킬',{team:true,conditional:true,maxStack:3}]);
     if(verified.length)for(const [gid,label,rules] of verified)push(gid,'skill-'+gid,label,rules);
     const skillRoots=rows('CHARACTER_SKILL_LEVEL').filter(r=>{const sk=T.CHARACTER_SKILL[r.SKILL_ID];return sk&&sk.SKILL_SET_ID===c.SKILL_SET_ID&&[1,2,3,4,7].includes(sk.SKILL_TYPE)&&sk.CANTO_LEVEL<=q.canto&&r.SKILL_LEVEL===q.skillLevel;}).flatMap(r=>r.ACTION_ABILITY_GROUP_ID||[]);
-    const excluded=new Set([...(cid===101401?[101406,101435,101416,101418,101432,101433,101436,101437]:[]),...(cid===104001?[104003,104006,104007,104008,104009]:[]),...(cid===101901?[101929,101928,101938,101952,101954]:[])]);
+    const excluded=new Set([...replacements,...verified.map(v=>v[0]),...(cid===101401?[101406,101435,101416,101418,101432,101433,101436,101437]:[]),...(cid===104001?[104003,104006,104007,104008,104009]:[]),...(cid===101901?[101929,101928,101938,101952,101954]:[])]);
     for(const e of linkedEffects(skillRoots,q.canto,q.skillLevel))if(!excluded.has(e.gid)&&!out.some(x=>x.owner===i&&x.gid===e.gid))out.push({...e,owner:i,key:i+':linked-'+e.gid,label:'패시브·교체·전투 스킬',conditional:true});
     const sanctuary=sanctuaryEffect(cid,q);if(sanctuary)out.push({...sanctuary,owner:i,key:i+':sanctuary-'+sanctuary.gid,label:'성소 해금 '+sanctuary.level+'레벨'});
     for(const [id,r] of Object.entries(T.CHARACTER_CANTO))if(r.CHARACTER_ID===cid&&r.CANTO_LEVEL<=q.canto)for(const g of r.ABILITY_GROUP_ADD||[])if(g&&!verified.some(v=>v[0]===g))push(g,'canto-'+r.CANTO_LEVEL+'-'+g,'돌파 '+r.CANTO_LEVEL,{conditional:true});
@@ -149,8 +181,8 @@
     return {selected:true,values:v,element:c.ELEMENTAL_TYPE,warnings,logs:[]};
    });
    let conversions=[];
-   for(const e of effects){let settings=detail.slots[e.owner].effects[e.key],active=detail.autoEffects?!e.unsupported:(settings?settings.on:!e.conditional&&!e.scopeUnverified);e.applied=false;e.appliedTo=[];e.appliedStacks=detail.autoEffects?e.maxStack:Math.min(e.maxStack,settings?.stacks||1);if(e.conditionCount&&party.slots.filter(s=>character(s.character)?.ELEMENTAL_TYPE===e.conditionCount.element).length<e.conditionCount.count)active=false;if(!active)continue;if(!detail.autoEffects&&e.scopeUnverified&&!settings?.scope){missing.push(e.label+' 적용 대상 미확인');continue;}const team=e.team||(!detail.autoEffects&&settings?.scope==='team');const targets=(team?[0,1,2]:[e.owner]).filter(i=>result[i].selected&&(!e.targetElement||e.targetElement===result[i].element)&&(!e.excludeElement||e.excludeElement!==result[i].element)&&(!e.targetRange||character(party.slots[i].character)?.RANGE_TYPE===e.targetRange));e.appliedTo=targets;e.applied=targets.length>0;
-    for(const i of targets){if(!result[i].selected||(e.targetElement&&e.targetElement!==result[i].element))continue;let stacks=e.appliedStacks;for(const d of e.deltas){const ds=detail.autoEffects?(d.stacks||stacks):Math.min(d.stacks||stacks,stacks);result[i].values[d.key]=(result[i].values[d.key]||0)+d.value*ds;logs.push({slot:i,key:d.key,value:d.value*ds,label:e.label});}for(const conv of e.conversions)conversions.push({slot:i,owner:e.owner,...conv,label:e.label});if(e.unsupported)result[i].warnings.push('계산 미지원: '+e.title);}
+   for(const e of effects){let settings=detail.slots[e.owner].effects[e.key],active=detail.autoEffects?!e.unsupported:(settings?settings.on:!e.conditional&&!e.scopeUnverified);e.applied=false;e.appliedTo=[];e.appliedStacks=detail.autoEffects?e.maxStack:Math.min(e.maxStack,settings?.stacks||1);if(e.conditionCount&&party.slots.filter(s=>character(s.character)?.ELEMENTAL_TYPE===e.conditionCount.element).length<e.conditionCount.count)active=false;if(!active)continue;if(detail.autoEffects&&e.exclusiveGroup&&effects.some(other=>other!==e&&other.exclusiveGroup===e.exclusiveGroup&&((other.deltas.find(d=>d.key==='atk')?.value||0)>(e.deltas.find(d=>d.key==='atk')?.value||0)||((other.deltas.find(d=>d.key==='atk')?.value||0)===(e.deltas.find(d=>d.key==='atk')?.value||0)&&other.owner<e.owner))))continue;if(!detail.autoEffects&&e.scopeUnverified&&!settings?.scope){missing.push(e.label+' 적용 대상 미확인');continue;}const team=e.team||(!detail.autoEffects&&settings?.scope==='team');const targets=(team?[0,1,2]:[e.owner]).filter(i=>result[i].selected&&(!e.targetElement||e.targetElement===result[i].element)&&(!e.excludeElement||e.excludeElement!==result[i].element)&&(!e.targetRange||character(party.slots[i].character)?.RANGE_TYPE===e.targetRange));e.appliedTo=targets;e.applied=targets.length>0;
+    for(const i of targets){if(!result[i].selected||(e.targetElement&&e.targetElement!==result[i].element))continue;let stacks=e.appliedStacks;for(const d of e.deltas){const ds=detail.autoEffects?(d.stacks||stacks):Math.min(d.stacks||stacks,stacks);result[i].values[d.key]=(result[i].values[d.key]||0)+d.value*ds;logs.push({slot:i,key:d.key,value:d.value*ds,label:e.label});}for(const conv of e.conversions)conversions.push({slot:i,...conv,owner:conv.sourceTarget?i:e.owner,label:e.label});if(e.unsupported)result[i].warnings.push('계산 미지원: '+e.title);}
    }
    // User-provided level weights: only the character's own role converts to damage.
    party.slots.forEach((s,i)=>{const c=character(s.character),conversion=c&&roleConversions[c.STATUS_TYPE],weight=positionWeights[detail.slots[i].level];if(result[i].selected&&conversion&&Number.isFinite(weight))conversions.push({slot:i,owner:i,...conversion,ratio:weight/10000,truncatePercent:true,cap:0,label:'역할 능력치 · '+detail.slots[i].level+'레벨 환산'});});
