@@ -92,3 +92,44 @@
 
 .detail-selection .artifact-bar__label{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;word-break:keep-all;line-height:1.45}
 .detail-selection .artifact-bar{height:auto;min-height:64px;padding:10px}
+
+/* PNG: three independent detailed character cards side by side. */
+.detail-export #detailSlots{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;align-items:start}
+.detail-export .detail-character{display:flex!important;flex-direction:column;gap:18px;padding:22px;margin:0;min-width:0}
+.detail-export .detail-selection{width:100%;max-width:none}
+.detail-export .detail-selection .slot{display:block}
+.detail-export .detail-selection .slot__header{text-align:left;margin-bottom:12px;font-size:18px}
+.detail-export .detail-selection .char-card{display:grid;grid-template-columns:170px minmax(0,1fr);grid-template-rows:auto auto;align-items:center;border:0;background:transparent;gap:8px 18px}
+.detail-export .detail-selection .char-card__button{grid-row:1/span 2;width:170px;aspect-ratio:1}
+.detail-export .detail-selection .char-card__name{background:transparent;border:0;font-size:25px;text-align:left;padding:0}
+.detail-export .detail-selection .artifact-bar{background:transparent;border:0;padding:0;font-size:18px;min-height:50px}
+.detail-export .detail-selection .artifact-bar__label{font-size:18px}
+.detail-export .detail-controls{display:contents}
+.detail-export .detail-section-heading{display:none}
+.detail-export .detail-growth{order:1;width:100%;gap:12px}
+.detail-export .detail-growth .detail-field{font-size:16px}
+.detail-export .detail-growth select{font-size:22px}
+.detail-export .detail-results{order:2;width:100%;padding:18px;background:var(--bg-soft)}
+.detail-export .detail-results>dl{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px}
+.detail-export .detail-results dt{font-size:18px}
+.detail-export .detail-results dd{font-size:26px}
+.detail-export .detail-results dl>div{padding:14px 0}
+.detail-export .detail-cap{font-size:12px}
+.detail-export .detail-character>h3{order:3;width:100%;margin:8px 0 0;font-size:22px}
+.detail-export .detail-equipment{order:4;width:100%;grid-template-columns:repeat(2,minmax(0,1fr))}
+.detail-export .detail-character>h3:last-of-type{order:5}
+.detail-export .detail-character>.rings{order:6;width:100%}
+.detail-export .detail-editor .detail-controls .ring-row{grid-template-columns:104px repeat(4,minmax(0,1fr))!important}
+.detail-export .detail-controls .ring-slot__value{font-size:18px}
+.detail-export .detail-controls .ring-slot{min-height:88px}
+.detail-export .detail-foods{font-size:18px}
+.detail-export .detail-foods h2{font-size:23px}
+.detail-export .detail-foods p{font-size:16px}
+.detail-export .detail-food strong{font-size:20px}
+
+.detail-export .detail-character .ring-row{grid-template-columns:104px repeat(4,minmax(0,1fr))!important;gap:8px}
+.detail-export .detail-character .ring-row__label{grid-row:auto;min-height:88px;padding:8px}
+.detail-export .detail-character .ring-row__monster-name{font-size:14px;word-break:keep-all}
+.detail-export .detail-character .ring-slot{min-height:88px;padding:10px 8px}
+.detail-export .detail-character .ring-slot__value{font-size:18px;font-weight:700;white-space:normal;word-break:keep-all;line-height:1.45}
+.detail-export .detail-character .ring-slot__label{font-size:12px}

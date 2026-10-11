@@ -974,7 +974,8 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
       if(contentImage && clonedContentImage) clonedContentImage.style.backgroundImage = getComputedStyle(contentImage).backgroundImage;
       if(detailActive){
           const board=doc.getElementById('captureArea');board.classList.add('detail-export');
-          board.style.cssText='width:1600px;max-width:none;margin:0;padding:24px;box-sizing:border-box';
+          board.style.cssText='width:2760px;max-width:none;margin:0;padding:24px;box-sizing:border-box';
+          doc.querySelectorAll('.detail-controls').forEach(el=>el.replaceWith(...el.childNodes));
           doc.querySelector('.detail-character-tabs')?.remove();doc.querySelector('.detail-formula')?.remove();
           doc.querySelectorAll('.detail-results details').forEach(el=>el.remove());
           doc.getElementById('detailEffects')?.remove();
@@ -995,7 +996,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
     useCORS: true,
     scrollX: 0,
     scrollY: -window.scrollY,
-    windowWidth: window.DetailedEditor?.active ? 1800 : document.documentElement.scrollWidth,
+    windowWidth: window.DetailedEditor?.active ? 2900 : document.documentElement.scrollWidth,
     windowHeight: document.documentElement.scrollHeight,
   })
     .then((canvas) => {
