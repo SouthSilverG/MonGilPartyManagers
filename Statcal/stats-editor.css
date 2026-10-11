@@ -75,3 +75,17 @@
 .detail-export .detail-results dl{display:block}
 @media(max-width:1150px){.detail-character,.detail-character.is-current{grid-template-columns:190px minmax(0,1fr)!important}.detail-results{grid-column:1/-1}.detail-results>dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}.detail-equipment{grid-template-columns:1fr}}
 @media(max-width:700px){.detail-character,.detail-character.is-current{grid-template-columns:minmax(0,1fr)!important;padding:14px;gap:16px}.detail-selection{width:220px;margin:auto}.detail-growth{gap:7px}.detail-growth .detail-field{font-size:12px}.detail-growth select{font-size:18px}.detail-editor .detail-controls .ring-row{grid-template-columns:90px repeat(2,minmax(0,1fr))!important}.detail-controls .ring-row__label{grid-row:1/span 2}.detail-controls .ring-slot{min-height:58px}.detail-results dt{font-size:12px}.detail-results dd{font-size:18px}}
+
+.detail-effects.hidden{display:none!important}
+
+/* Fixed monster option values stay in the calculation, not the labels. */
+.detail-controls .ring-slot__value{font-size:17px;font-weight:700;line-height:1.45}
+.detail-controls .ring-slot__label{font-size:12px}
+.detail-controls .ring-slot{padding:10px 8px}
+.detail-controls .ring-row__monster-name{font-size:14px}
+.detail-gear>strong{font-size:16px}
+.detail-gear-inputs .detail-field{font-size:14px;gap:8px}
+.detail-gear-inputs input{font-size:20px;font-weight:600;min-height:46px;padding:10px 6px}
+.detail-gear .equip-slot__value,.detail-gear .equip-slot__label{font-size:13px}
+.detail-gear .equip-slot img{width:46px;height:46px}
+@media(max-width:700px){.detail-controls .ring-slot__value{font-size:16px}.detail-gear-inputs .detail-field{font-size:13px}.detail-gear-inputs input{font-size:19px}}
