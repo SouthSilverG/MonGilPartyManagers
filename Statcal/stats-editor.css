@@ -25,3 +25,53 @@
 .detail-effect[data-auto-applied="false"] .detail-effect-badge{background:var(--bg-soft);border-color:var(--border);color:var(--text-secondary)}
 
 
+
+/* Character rows: wide ring options, equipment beside its substats. */
+.board--detail{max-width:1600px}
+#detailSlots{display:block}
+.detail-character,.detail-character.is-current,.detail-export .detail-character{display:grid!important;grid-template-columns:220px minmax(0,1fr) 290px!important;gap:20px;padding:20px;margin:20px 0;border:1px solid var(--border);border-radius:var(--radius-lg);background:var(--panel);scroll-margin-top:90px}
+.detail-selection,.detail-export .detail-selection{width:auto;max-width:none;margin:0}
+.detail-selection .slot{padding:0;border:0;background:transparent}
+.detail-selection .slot__header{font-size:15px}
+.detail-selection .char-card__name{font-size:16px;padding:10px}
+.detail-selection .artifact-bar{min-height:54px;font-size:15px}
+.detail-section-heading{display:block;margin-bottom:16px}
+.detail-section-heading h2{font-size:24px}
+.detail-controls header p,.detail-results header p{font-size:13px}
+.detail-growth{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.detail-growth .detail-field{font-size:15px;font-weight:600}
+.detail-growth select{font-size:20px;font-weight:700;padding:10px}
+.detail-controls h3{font-size:17px;margin:20px 0 12px}
+.detail-controls h3 small{font-size:12px}
+.detail-equipment{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.detail-gear{display:grid;grid-template-columns:76px minmax(0,1fr);gap:8px;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg-soft);min-width:0}
+.detail-gear>strong{grid-column:1/-1;font-size:14px}
+.detail-gear .equip-slot{min-height:100px;padding:5px}
+.detail-gear .equip-slot img{width:40px;height:40px}
+.detail-gear .equip-slot__value,.detail-gear .equip-slot__label{font-size:11px;word-break:keep-all}
+.detail-gear-inputs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;align-items:center;min-width:0}
+.detail-field{font-size:12px}
+.detail-field input{font-size:16px;padding:9px 6px}
+.detail-field input::placeholder{font-size:10px}
+.detail-controls .rings{gap:10px}
+.detail-editor .detail-controls .ring-row{grid-template-columns:100px repeat(4,minmax(0,1fr))!important;gap:7px;min-height:80px}
+.detail-controls .ring-row__label{grid-row:auto;min-height:80px;padding:7px;font-size:13px}
+.detail-controls .ring-row__monster-icon{width:34px;height:34px}
+.detail-controls .ring-row__monster-name{font-size:12px;word-break:keep-all}
+.detail-controls .ring-slot{min-height:80px;padding:8px 5px}
+.detail-controls .ring-slot__label{font-size:11px}
+.detail-controls .ring-slot__value{font-size:13px;white-space:normal;word-break:keep-all;line-height:1.4}
+.detail-prime-value{font-size:14px}
+.detail-results{padding:18px}
+.detail-results h2{font-size:20px}
+.detail-results dl>div{padding:12px 0}
+.detail-results dt{font-size:14px}
+.detail-results dd{font-size:21px}
+.detail-cap{font-size:11px;margin-top:3px}
+.detail-excess{font-size:12px}
+.detail-results details{font-size:13px}
+.detail-export #detailSlots{display:block!important}
+.detail-export .detail-character{grid-template-columns:220px minmax(0,1fr) 310px!important}
+.detail-export .detail-results dl{display:block}
+@media(max-width:1150px){.detail-character,.detail-character.is-current{grid-template-columns:190px minmax(0,1fr)!important}.detail-results{grid-column:1/-1}.detail-results>dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}.detail-equipment{grid-template-columns:1fr}}
+@media(max-width:700px){.detail-character,.detail-character.is-current{grid-template-columns:minmax(0,1fr)!important;padding:14px;gap:16px}.detail-selection{width:220px;margin:auto}.detail-growth{gap:7px}.detail-growth .detail-field{font-size:12px}.detail-growth select{font-size:18px}.detail-editor .detail-controls .ring-row{grid-template-columns:90px repeat(2,minmax(0,1fr))!important}.detail-controls .ring-row__label{grid-row:1/span 2}.detail-controls .ring-slot{min-height:58px}.detail-results dt{font-size:12px}.detail-results dd{font-size:18px}}
