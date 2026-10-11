@@ -974,14 +974,18 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
       if(contentImage && clonedContentImage) clonedContentImage.style.backgroundImage = getComputedStyle(contentImage).backgroundImage;
       if(detailActive){
           const board=doc.getElementById('captureArea');board.classList.add('detail-export');
-          board.style.cssText='width:2760px;max-width:none;margin:0;padding:24px;box-sizing:border-box';
-          doc.querySelectorAll('.detail-controls').forEach(el=>el.replaceWith(...el.childNodes));
+          board.style.cssText='width:1600px;max-width:none;margin:0;padding:24px;box-sizing:border-box';
           doc.querySelector('.detail-character-tabs')?.remove();doc.querySelector('.detail-formula')?.remove();
           doc.querySelectorAll('.detail-results details').forEach(el=>el.remove());
           doc.getElementById('detailEffects')?.remove();
           if(!remarksHasText)doc.querySelector('.remarks')?.remove();
         }
       doc.querySelectorAll('.modal-overlay,.party-title-box__input--capture-hidden,.remarks__textarea--capture-hidden').forEach(el => el.remove());
+      if(detailActive){
+        // Scale each element's resolved font once, without compounding inherited sizes.
+        const textSizes=[...doc.querySelectorAll('#captureArea, #captureArea *')].map(el=>[el,parseFloat(doc.defaultView.getComputedStyle(el).fontSize)]);
+        textSizes.forEach(([el,size])=>{if(Number.isFinite(size))el.style.fontSize=(size*1.1)+'px';});
+      }
       doc.querySelectorAll('#captureArea input, #captureArea select, #captureArea textarea').forEach(el => {
         const clone = doc.createElement('div');
         const styles = doc.defaultView.getComputedStyle(el);
@@ -996,7 +1000,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
     useCORS: true,
     scrollX: 0,
     scrollY: -window.scrollY,
-    windowWidth: window.DetailedEditor?.active ? 2900 : document.documentElement.scrollWidth,
+    windowWidth: window.DetailedEditor?.active ? 1800 : document.documentElement.scrollWidth,
     windowHeight: document.documentElement.scrollHeight,
   })
     .then((canvas) => {
