@@ -602,7 +602,7 @@ function handleSlotClick(e) {
     const ringKey = target.dataset.ring;
     openModal({
       title: RING_LABELS[ringKey] + " - 몬스터 선택",
-      items: MONSTERS,
+      items: MONSTERS.filter(x=>!LEGEND_ONLY_MONSTER_IDS.has(x.id)&&!LEGEND_MONSTERS.some(l=>l.name===x.name)),
       onSelect: (id) => {
         slot.ringMonsters[ringKey] = id;
         closeModal();
@@ -868,7 +868,7 @@ function applyImportedPartyPayload(jsonText) {
 
     RING_KEYS.forEach((k) => {
       const savedMonster = savedSlot.ringMonsters && savedSlot.ringMonsters[k];
-      fresh.ringMonsters[k] = typeof savedMonster === "string" ? savedMonster : null;
+      fresh.ringMonsters[k] = typeof savedMonster === "string" && !LEGEND_ONLY_MONSTER_IDS.has(savedMonster) ? savedMonster : null;
 
       const savedRingArr =
         savedSlot.rings && Array.isArray(savedSlot.rings[k]) ? savedSlot.rings[k] : [];
