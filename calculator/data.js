@@ -148,6 +148,18 @@ const SECTIONS = [
     ],
   },
   {
+    title: "반주년 행운의 출석 패스!",
+    items: [{
+      name: "반주년 행운의 출석 패스!",
+      type: "패스", price: 33000, limit: 1,
+      rewards: R({}),
+      luckyBoxes: [
+        { key: "destiny", count: 4, outcomes: [[3,0.70],[5,0.20],[7,0.08],[10,0.02]] },
+        { key: "memory", count: 4, outcomes: [[3,0.70],[5,0.20],[7,0.08],[10,0.02]] },
+      ],
+    }],
+  },
+  {
     title: "기록의 정원",
     items: [
       {

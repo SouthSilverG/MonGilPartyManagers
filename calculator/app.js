@@ -26,6 +26,16 @@ function calcEfficiency(price, rewards) {
   return (ticketTotal * CONFIG.PULL_PRICE) / price * 100;
 }
 
+function luckyBoxRewards(item,mode='expected'){
+  const result={};
+  for(const box of item.luckyBoxes||[]){
+    const values=box.outcomes.map(([value])=>value);
+    const perBox=mode==='minimum'?Math.min(...values):mode==='maximum'?Math.max(...values):box.outcomes.reduce((sum,[value,probability])=>sum+value*probability,0);
+    result[box.key]=(result[box.key]||0)+perBox*box.count;
+  }
+  return result;
+}
+function effectiveRewards(item){return addRewards(item.rewards||{},luckyBoxRewards(item));}
 function getEfficiencyTier(percent) {
   if (percent === null || percent === undefined || Number.isNaN(percent)) return null;
   for (const tier of CONFIG.EFFICIENCY_TIERS) {
@@ -73,7 +83,7 @@ function buildSummaryItem(name, group, bonus) {
 /* ---------- 상태 ---------- */
 
 // 체크된 항목의 가격만 더해서 상단 총합 과금액에 반영합니다.
-const purchaseState = new Map(); // key: "sectionIdx-itemIdx" -> boolean
+const purchaseState = new Map(); // key: "sectionIdx-itemIdx" -> purchase count
 
 function itemKey(sectionIdx, itemIdx) {
   return `${sectionIdx}-${itemIdx}`;
@@ -208,16 +218,15 @@ function renderAll() {
       const checkCell = document.createElement("span");
       checkCell.className = "col-check";
       if (item.checkable !== false && !item.isSummary) {
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.className = "buy-checkbox";
-        const key = itemKey(sectionIdx, itemIdx);
-        checkbox.checked = !!purchaseState.get(key);
-        checkbox.addEventListener("change", () => {
-          purchaseState.set(key, checkbox.checked);
-          updateTotal();
-        });
-        checkCell.appendChild(checkbox);
+        const key=itemKey(sectionIdx,itemIdx),limit=purchaseLimit(item);
+        const control=document.createElement('div');control.className='purchase-counter';
+        const minus=document.createElement('button');minus.type='button';minus.textContent='−';minus.setAttribute('aria-label',item.name+' 구매 횟수 감소');
+        const count=document.createElement('span');count.className='purchase-count';count.setAttribute('aria-live','polite');
+        const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.setAttribute('aria-label',item.name+' 구매 횟수 증가');
+        const sync=()=>{const qty=normalizeQuantity(item,purchaseState.get(key));purchaseState.set(key,qty);count.textContent=qty+'회';row.dataset.purchaseCount=qty;minus.disabled=qty===0;plus.disabled=qty>=limit;};
+        const change=delta=>{purchaseState.set(key,normalizeQuantity(item,(purchaseState.get(key)||0)+delta));sync();updateTotal();};
+        minus.addEventListener('click',()=>change(-1));plus.addEventListener('click',()=>change(1));
+        control.append(minus,count,plus);checkCell.appendChild(control);sync();
       }
       row.appendChild(checkCell);
 
@@ -244,11 +253,16 @@ function renderAll() {
 
       const effCell = document.createElement("span");
       effCell.className = "col-eff";
-      const percent = calcEfficiency(item.price, item.rewards);
+      const percent = calcEfficiency(item.price, effectiveRewards(item));
       const tier = getEfficiencyTier(percent);
       const badge = document.createElement("span");
       badge.className = "eff-badge" + (tier ? ` ${tier.className}` : "");
-      badge.textContent = formatEfficiency(percent);
+      badge.textContent = (item.luckyBoxes?'기댓값 ':'')+formatEfficiency(percent);
+      if(item.luckyBoxes){
+        const minimum=calcEfficiency(item.price,addRewards(item.rewards,luckyBoxRewards(item,'minimum')));
+        badge.title='최소 보장 효율 '+formatEfficiency(minimum)+' / 최대 '+formatEfficiency(calcEfficiency(item.price,addRewards(item.rewards,luckyBoxRewards(item,'maximum'))));
+        const floor=document.createElement('small');floor.className='lucky-floor';floor.textContent='최소 '+formatEfficiency(minimum);effCell.appendChild(floor);
+      }
       effCell.appendChild(badge);
       row.appendChild(effCell);
 
@@ -262,6 +276,16 @@ function renderAll() {
         composeCell.textContent = "-";
         composeCell.classList.add("col-compose--empty");
       }
+      if(item.luckyBoxes){
+        composeCell.textContent="";composeCell.classList.remove("col-compose--empty");
+        item.luckyBoxes.forEach(box=>{
+          const info=REWARD_ICONS.find(x=>x.key===box.key),badge=document.createElement('span');badge.className='lucky-box';
+          const img=document.createElement('img');img.src=info.icon;img.alt='';
+          const text=document.createElement('span');text.textContent=info.label+' 럭키 박스 ×'+box.count;
+          badge.append(img,text);composeCell.appendChild(badge);
+        });
+        const note=document.createElement('small');note.className='lucky-note';note.textContent='각 박스: 3개 70% · 5개 20% · 7개 8% · 10개 2%';composeCell.appendChild(note);
+      }
       row.appendChild(composeCell);
 
       table.appendChild(row);
@@ -274,18 +298,56 @@ function renderAll() {
   updateTotal();
 }
 
-function updateTotal() {
-  let total = 0;
-  SECTIONS.forEach((section, sectionIdx) => {
-    section.items.forEach((item, itemIdx) => {
-      if (item.summary) return; // summary 마커 자체는 가격이 없음(자동 계산된 실제 행에서 처리)
-      const key = itemKey(sectionIdx, itemIdx);
-      if (purchaseState.get(key) && item.price) {
-        total += item.price;
+function purchaseLimit(item){
+  if(['월정액','패스','구독','초회'].includes(item.type))return 1;
+  return item.limit>0?Math.floor(item.limit):Infinity;
+}
+function normalizeQuantity(item,value){
+  const n=Number(value);return Number.isFinite(n)?Math.min(purchaseLimit(item),Math.max(0,Math.floor(n))):0;
+}
+// Sum pull values per item so different/multiple choice tickets are not collapsed.
+function calcSelectedTotals(sections, getQuantity) {
+  let price=0, pulls=0, hasExpected=false;
+  let rewards={...EMPTY_REWARDS};
+  const includeRewards=r=>{rewards=addRewards(rewards,r||{});pulls+=calcTicketTotal(r||{});};
+  sections.forEach((section,si)=>{
+    let group=[];
+    section.items.forEach((item,ii)=>{
+      if(item.summary){
+        const purchasable=group.filter(({item})=>item.checkable!==false && item.price>0);
+        if(item.bonus && purchasable.length && purchasable.every(({ii})=>normalizeQuantity(section.items[ii],getQuantity(si,ii))>0))includeRewards(item.bonus);
+        group=[];return;
+      }
+      group.push({item,ii});
+      const qty=normalizeQuantity(item,getQuantity(si,ii));
+      if(item.checkable!==false && qty>0){
+        price+=(item.price||0)*qty;
+        const r=effectiveRewards(item);if(item.luckyBoxes?.length)hasExpected=true;
+        rewards=addRewards(rewards,Object.fromEntries(['destiny','memory','promise','star','crystal'].map(k=>[k,(r[k]||0)*qty])));
+        pulls+=calcTicketTotal(r)*qty;
       }
     });
   });
-  document.getElementById("totalPrice").textContent = formatWon(total);
+  return {price,rewards,pulls,hasExpected,efficiency:price>0?pulls*CONFIG.PULL_PRICE/price*100:null};
+}
+function updateTotal() {
+  const total=calcSelectedTotals(SECTIONS,(si,ii)=>purchaseState.get(itemKey(si,ii))||0);
+  document.getElementById("totalPrice").textContent=formatWon(total.price);
+  const rewardsBox=document.getElementById("totalRewards");
+  rewardsBox.innerHTML='';
+  REWARD_ICONS.forEach(({key,label,icon})=>{
+    const card=document.createElement('div');card.className='total-reward';
+    const img=document.createElement('img');img.src=icon;img.alt='';
+    const text=document.createElement('div');const name=document.createElement('span');name.textContent=label;
+    const value=document.createElement('strong');value.textContent=(total.rewards[key]||0).toLocaleString('ko-KR',{maximumFractionDigits:2});
+    text.append(name,value);card.append(img,text);rewardsBox.append(card);
+  });
+  document.querySelector('.total-efficiency>span').textContent=total.hasExpected?'총합 효율 (기댓값)':'총합 효율';
+  document.getElementById('totalExpectedNote').hidden=!total.hasExpected;
+  const efficiency=document.getElementById('totalEfficiency');
+  efficiency.textContent=formatEfficiency(total.efficiency);
+  efficiency.className='eff-badge'+(getEfficiencyTier(total.efficiency)?' '+getEfficiencyTier(total.efficiency).className:'');
+  document.getElementById('totalPulls').textContent='뽑기 환산 '+total.pulls.toLocaleString('ko-KR',{maximumFractionDigits:2})+'회';
 }
 
 renderAll();
@@ -293,8 +355,7 @@ renderAll();
 /* ---------- PNG로 저장 (체크한 상품만 출력) ---------- */
 
 function isRowChecked(row) {
-  const checkbox = row.querySelector(".buy-checkbox");
-  return checkbox ? checkbox.checked : false;
+  return Number(row.dataset.purchaseCount)>0;
 }
 
 // PNG로 저장할 때는 구매 체크한 상품만 보이도록 나머지를 잠깐 숨겼다가(enable=true),
@@ -347,7 +408,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
   // 체크(구매 예정)한 상품이 하나도 없으면 빈 이미지가 나오므로 미리 안내하고 중단합니다.
   const hasChecked = Array.from(purchaseState.values()).some(Boolean);
   if (!hasChecked) {
-    alert("먼저 저장하고 싶은 상품에 체크해주세요.\n체크한 상품만 PNG에 표시됩니다.");
+    alert("먼저 저장하고 싶은 상품의 구매 횟수를 선택해주세요.\n구매 횟수가 1회 이상인 상품만 PNG에 표시됩니다.");
     return;
   }
 
@@ -355,7 +416,9 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
   // 이때 체크하지 않은 상품/섹션은 잠깐 숨기고, 체크한 상품만 캡처되도록 합니다.
   const captureArea = document.getElementById("captureArea");
   setPngCheckedOnlyMode(true);
-  html2canvas(captureArea, { backgroundColor: "#0a0b10", scale: 2, useCORS: true })
+  html2canvas(captureArea, { backgroundColor: "#0a0b10", scale: 2, useCORS: true,
+    onclone:doc=>{doc.querySelectorAll('.purchase-counter').forEach(el=>{const count=el.querySelector('.purchase-count');el.replaceChildren(count);});}
+  })
     .then((canvas) => {
       // toDataURL 대신 toBlob + objectURL을 사용합니다.
       // 이렇게 해야 브라우저가 일반적인 "파일 다운로드"로 인식해서

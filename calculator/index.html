@@ -42,13 +42,15 @@
       </header>
 
       <main id="captureArea" class="page">
-        <div class="total-hero">
-          <span class="total-hero__label">총합 과금액</span>
-          <span id="totalPrice" class="total-hero__value">₩0</span>
+        <div class="purchase-summary" aria-label="선택한 상품 합계" aria-live="polite">
+          <div class="total-hero"><span class="total-hero__label">총합 과금액</span><span id="totalPrice" class="total-hero__value">₩0</span></div>
+          <div id="totalRewards" class="total-rewards"></div>
+          <div class="total-efficiency"><span>총합 효율</span><strong id="totalEfficiency">-</strong><small id="totalPulls">뽑기 환산 0회</small></div>
         </div>
 
+        <p id="totalExpectedNote" class="total-expected-note" hidden>획득량·총합 효율에 럭키 박스 기댓값이 포함되어 있습니다. 실제 획득량은 개봉 결과에 따라 달라집니다.</p>
         <div class="info-banner">
-          구매 하려는 상품 왼쪽 체크박스를 누르면 위 <strong>총합 과금액</strong>에 반영됩니다.<br />
+          구매하려는 상품 왼쪽 − / + 버튼으로 횟수를 선택하면 위 <strong>총합 과금액</strong>에 반영됩니다.<br />
           <strong>효율</strong>은 "3000원당 1뽑" 기준으로, 실제 뽑기로 환산했을 때 얼마나 이득인지 보여주는 값입니다
           (5성 캐릭터 = 90뽑, 5성 아티팩트 = 80뽑 기준).<br />
           초록색 이상이면 확실히 효율이 좋은 상품입니다.
