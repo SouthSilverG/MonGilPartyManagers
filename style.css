@@ -1279,3 +1279,16 @@ body {
   cursor: pointer;
 }
 .png-preview__download:hover { filter: brightness(1.08); }
+
+.mobile-party-tabs{display:none}
+@media(max-width:720px){
+ .mobile-party-tabs{display:flex;gap:6px;position:sticky;top:0;z-index:5;background:var(--bg-soft);padding:8px 0}
+ .mobile-party-tabs button{flex:1;min-width:0;padding:12px 6px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text-primary);font:inherit;font-size:12px;word-break:keep-all}
+ .mobile-party-tabs button[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+ #slots>.slot:not(.mobile-slot-current){display:none}
+ .png-preview{max-height:90dvh;overflow:auto}.png-preview__download{min-height:44px;margin-top:8px;cursor:pointer}
+}
+.png-export .mobile-party-tabs{display:none!important}
+.png-export #slots>.slot{display:flex!important}
+
+#pngPreviewShare[hidden]{display:none!important}
