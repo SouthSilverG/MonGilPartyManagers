@@ -63,7 +63,7 @@ const EMPTY_REWARDS = { destiny: 0, memory: 0, promise: 0, star: 0, crystal: 0, 
 function buildSummaryItem(name, group, bonus) {
   let price = 0;
   let rewards = { ...EMPTY_REWARDS };
-  group.forEach((it) => {
+  group.filter(it=>!it.summaryExcluded).forEach((it) => {
     price += it.price || 0;
     rewards = addRewards(rewards, it.rewards);
   });
@@ -224,7 +224,7 @@ function renderAll() {
         const count=document.createElement('span');count.className='purchase-count';count.setAttribute('aria-live','polite');
         const plus=document.createElement('button');plus.type='button';plus.textContent='+';plus.setAttribute('aria-label',item.name+' 구매 횟수 증가');
         const sync=()=>{const qty=normalizeQuantity(item,purchaseState.get(key));purchaseState.set(key,qty);count.textContent=qty+'회';row.dataset.purchaseCount=qty;minus.disabled=qty===0;plus.disabled=qty>=limit;};
-        const change=delta=>{purchaseState.set(key,normalizeQuantity(item,(purchaseState.get(key)||0)+delta));sync();updateTotal();};
+        const change=delta=>{const qty=normalizeQuantity(item,(purchaseState.get(key)||0)+delta);setPurchaseQuantity(sectionIdx,itemIdx,qty);if(item.exclusiveGroup){renderAll();}else{sync();updateTotal();}};
         minus.addEventListener('click',()=>change(-1));plus.addEventListener('click',()=>change(1));
         control.append(minus,count,plus);checkCell.appendChild(control);sync();
       }
@@ -305,6 +305,17 @@ function purchaseLimit(item){
 function normalizeQuantity(item,value){
   const n=Number(value);return Number.isFinite(n)?Math.min(purchaseLimit(item),Math.max(0,Math.floor(n))):0;
 }
+function setPurchaseQuantity(si,ii,value){
+  const item=SECTIONS[si].items[ii],qty=normalizeQuantity(item,value);
+  if(qty>0&&item.exclusiveGroup)SECTIONS.forEach((section,s)=>section.items.forEach((other,i)=>{if(other.exclusiveGroup===item.exclusiveGroup)purchaseState.set(itemKey(s,i),0);}));
+  purchaseState.set(itemKey(si,ii),qty);
+}
+function selectedQuantity(sections,si,ii,getQuantity){
+  const item=sections[si].items[ii],qty=normalizeQuantity(item,getQuantity(si,ii));
+  if(!qty||!item.exclusiveGroup)return qty;
+  const superseded=sections.some((section,s)=>section.items.some((other,i)=>other!==item&&other.exclusiveGroup===item.exclusiveGroup&&normalizeQuantity(other,getQuantity(s,i))>0&&((other.price||0)>(item.price||0)||((other.price||0)===(item.price||0)&&(s<si||(s===si&&i<ii))))));
+  return superseded?0:qty;
+}
 // Sum pull values per item so different/multiple choice tickets are not collapsed.
 function calcSelectedTotals(sections, getQuantity) {
   let price=0, pulls=0, hasExpected=false;
@@ -315,11 +326,11 @@ function calcSelectedTotals(sections, getQuantity) {
     section.items.forEach((item,ii)=>{
       if(item.summary){
         const purchasable=group.filter(({item})=>item.checkable!==false && item.price>0);
-        if(item.bonus && purchasable.length && purchasable.every(({ii})=>normalizeQuantity(section.items[ii],getQuantity(si,ii))>0))includeRewards(item.bonus);
+        if(item.bonus && purchasable.length && purchasable.every(({ii})=>selectedQuantity(sections,si,ii,getQuantity)>0))includeRewards(item.bonus);
         group=[];return;
       }
       group.push({item,ii});
-      const qty=normalizeQuantity(item,getQuantity(si,ii));
+      const qty=selectedQuantity(sections,si,ii,getQuantity);
       if(item.checkable!==false && qty>0){
         price+=(item.price||0)*qty;
         const r=effectiveRewards(item);if(item.luckyBoxes?.length)hasExpected=true;

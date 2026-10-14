@@ -102,12 +102,14 @@ const SECTIONS = [
     items: [
       {
         name: "비즈니스 클래스",
+        exclusiveGroup: "season-pass",
         type: "패스",
         price: 12000,
         rewards: R({ destiny: 5, crystal: 320 }),
       },
       {
         name: "퍼스트 클래스",
+        exclusiveGroup: "season-pass",
         type: "패스",
         price: 26000,
         rewards: R({ destiny: 12, crystal: 800 }),
@@ -198,7 +200,8 @@ const SECTIONS = [
         rewards: R({ destiny: 5, memory: 5, crystal: 400 }),
       },
       {
-        // 단독 구매 상품이 아니라, 바로 위 5개 상품을 전부 사야만 같이 딸려오는
+        // 원본 시트의 정산 참고 항목이며 실제 획득 재화가 아니므로 합계에서 제외한다.
+        // 이전 해석: 단독 구매 상품이 아니라, 바로 위 5개 상품을 전부 사야만 같이 딸려오는
         // 보상입니다. 그래서 체크박스도 없고(checkable: false), 가격도 없습니다.
         // (태초의 별 -525는 오타가 아니라 원본 엑셀에 실제로 적혀 있는 값입니다.
         //  아마도 위 5개 상품의 별빛 수정 보상 중 일부를 태초의 별로 환산해서
@@ -210,6 +213,7 @@ const SECTIONS = [
         limit: 1,
         checkable: false,
         rewards: R({ star: -525 }),
+        summaryExcluded: true,
       },
       // 이 6개 상품을 전부 사면 개별 보상 합계 외에 추가로 붙는 세트 완료 보너스
       summaryRow("레나의 스타터 지원 보상 총합 효율", { memory: 1, promise: 1, choice: "5성 캐릭터" }),
