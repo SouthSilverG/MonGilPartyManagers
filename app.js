@@ -927,6 +927,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1); // iPadOS는 Mac으로 위장함
 
   const captureArea = document.getElementById("captureArea");
+  const exportPayload = buildPartyExportPayload();
 
   // html2canvas는 <textarea>/<input> 같은 입력 요소 안의 글자를 실제
   // 화면과 다르게(윗부분이 잘린 것처럼) 그리는 문제가 있습니다. 캡처하는
@@ -985,14 +986,14 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
         }
 
         // "기록" 목록에도 이 파티를 남깁니다(실패해도 PNG 저장에는 영향 없음).
-        addHistoryEntry(buildPartyExportPayload());
+        addHistoryEntry(exportPayload);
 
         // 화면에는 안 보이지만, 파일 안에는 지금 파티 상태를 그대로 텍스트로
         // 같이 저장해 둡니다. 나중에 "업로드 (PNG)"로 이 파일을 다시 올리면
         // 이 데이터를 읽어서 파티를 그대로 복원할 수 있습니다.
         try {
           const originalBytes = await blob.arrayBuffer();
-          const embeddedBytes = embedPartyDataInPng(originalBytes, buildPartyExportPayload());
+          const embeddedBytes = embedPartyDataInPng(originalBytes, exportPayload);
           blob = new Blob([embeddedBytes], { type: "image/png" });
         } catch (err) {
           console.error("파티 데이터 저장 실패(이미지는 정상 저장됩니다):", err);
