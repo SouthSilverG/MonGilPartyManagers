@@ -91,11 +91,14 @@ function getCharacterAttributeKey(name) {
 
 /* ---------- 렌더링 ---------- */
 const slotsEl = document.getElementById("slots");
+let mobileSlotIndex=0;
 
 function render() {
   slotsEl.innerHTML = "";
+  const tabs=document.createElement('nav');tabs.className='mobile-party-tabs';tabs.setAttribute('aria-label','캐릭터 슬롯');
+  state.slots.forEach((slot,i)=>{const button=document.createElement('button');button.type='button';button.textContent=(i+1)+' · '+(findById(CHARACTERS,slot.character)?.name||'캐릭터 선택');button.setAttribute('aria-pressed',String(i===mobileSlotIndex));button.addEventListener('click',()=>{mobileSlotIndex=i;render();});tabs.appendChild(button);});slotsEl.appendChild(tabs);
   state.slots.forEach((slot, slotIndex) => {
-    slotsEl.appendChild(renderSlot(slot, slotIndex));
+    const card=renderSlot(slot, slotIndex);card.classList.toggle('mobile-slot-current',slotIndex===mobileSlotIndex);slotsEl.appendChild(card);
   });
   if (window.DetailedEditor) window.DetailedEditor.refresh();
 }
@@ -965,6 +968,8 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
   html2canvas(captureArea, {
     backgroundColor: "#101214",
     onclone: (doc) => {
+      doc.querySelectorAll(".mobile-party-tabs").forEach(el=>el.remove());
+      doc.getElementById("captureArea").classList.add("png-export");
       const detailActive = window.DetailedEditor && window.DetailedEditor.active;
       const inactive = doc.getElementById(detailActive ? 'slots' : 'detailEditor');
       if (inactive) inactive.remove();
@@ -996,7 +1001,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
         el.replaceWith(clone);
       });
     },
-    scale: 2,
+    scale: isMobile ? 1 : 2,
     useCORS: true,
     scrollX: 0,
     scrollY: -window.scrollY,
@@ -1033,6 +1038,8 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
         const filename = window.DetailedEditor && window.DetailedEditor.active
           ? `상세 스탯 에디터_${stamp}.png`
           : `몬길스타다이브_파티_${stamp}.png`;
+
+        if(isMobile){showPngPreview(URL.createObjectURL(blob),filename,blob);return;}
 
         const downloadViaAnchor = (showFallbackPreview) => {
           const url = URL.createObjectURL(blob);
@@ -1305,13 +1312,19 @@ document.getElementById("historyClearAll").addEventListener("click", () => {
   }
 });
 
-function showPngPreview(url, filename) {
+function showPngPreview(url, filename, blob) {
   const overlay = document.getElementById("pngPreviewOverlay");
   const img = document.getElementById("pngPreviewImage");
   const dl = document.getElementById("pngPreviewDownload");
   img.src = url;
   dl.href = url;
   dl.download = filename;
+  dl.textContent='PNG 파일 저장 / 열기';
+  let shareButton=document.getElementById('pngPreviewShare');
+  if(!shareButton){shareButton=document.createElement('button');shareButton.id='pngPreviewShare';shareButton.type='button';shareButton.className='png-preview__download';shareButton.textContent='공유 / 이미지 저장';dl.insertAdjacentElement('afterend',shareButton);}
+  const file=blob?new File([blob],filename,{type:'image/png'}):null;
+  shareButton.hidden=!(file&&navigator.share&&navigator.canShare?.({files:[file]}));
+  shareButton.onclick=()=>navigator.share({files:[file],title:'몬길 에디터 PNG'}).catch(err=>{if(err.name!=='AbortError')alert('공유가 제한된 브라우저입니다. PNG 파일 저장 / 열기 또는 이미지 길게 누르기를 이용해주세요.');});
   overlay.classList.remove("hidden");
 }
 

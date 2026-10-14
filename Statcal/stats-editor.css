@@ -92,3 +92,15 @@
 
 .detail-selection .artifact-bar__label{white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;word-break:keep-all;line-height:1.45}
 .detail-selection .artifact-bar{height:auto;min-height:64px;padding:10px}
+
+@media(max-width:700px){
+ .detail-editor .detail-character:not(.is-current){display:none!important}
+ .detail-editor .detail-character-tabs{position:sticky;top:0;z-index:5;background:var(--bg-soft);padding:8px 0}
+ .detail-editor .detail-character-tabs button{min-height:44px;word-break:keep-all}
+ .detail-editor .detail-results{grid-row:2}
+ .detail-editor .detail-controls{grid-row:3}
+ .detail-editor .detail-selection{width:170px}
+ .detail-editor .detail-results dl>div{padding:8px 0}
+}
+.detail-export .detail-character{display:grid!important}
+.detail-export .detail-results,.detail-export .detail-controls{grid-row:auto}
