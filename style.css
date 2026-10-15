@@ -1292,3 +1292,5 @@ body {
 .png-export #slots>.slot{display:flex!important}
 
 #pngPreviewShare[hidden]{display:none!important}
+
+.content-item--text-only{justify-content:center;min-height:150px;font-size:20px;background:var(--accent-soft);border-color:var(--accent-border)}
