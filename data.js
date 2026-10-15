@@ -111,6 +111,7 @@ const CONTENT_TABS = [
 
 const CONTENTS = {
   raid: [
+    { id: "content_raid", name: "토벌", image: null },
     { id: "content_custos", name: "쿠스토스", image: "assets/contents/custos.png" },
     { id: "content_amon", name: "아몬", image: "assets/contents/amon.png" },
     { id: "content_abadan", name: "아바단", image: "assets/contents/abadan.png" },
@@ -120,6 +121,7 @@ const CONTENTS = {
      { id: "content_unknown", name: "언노운", image: "assets/contents/unknown.png" },
   ],
   legend: [
+    { id: "content_legend", name: "전설 토벌", image: null },
     { id: "content_reginula", name: "레기눌라", image: "assets/contents/reginula.png" },
     { id: "content_sorin", name: "소린", image: "assets/contents/sorin.png" },
   ],

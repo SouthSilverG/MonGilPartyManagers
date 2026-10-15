@@ -1358,11 +1358,15 @@ function renderContentModalGrid() {
     card.type = "button";
     card.className = "content-item";
 
-    const img = document.createElement("img");
-    img.loading = "lazy";
-    img.src = item.image;
-    img.alt = item.name;
-    card.appendChild(img);
+    if (item.image) {
+      const img = document.createElement("img");
+      img.loading = "lazy";
+      img.src = item.image;
+      img.alt = item.name;
+      card.appendChild(img);
+    } else {
+      card.classList.add("content-item--text-only");
+    }
 
     const nameEl = document.createElement("span");
     nameEl.textContent = item.name;
@@ -1398,6 +1402,7 @@ function renderContentBox() {
     nameEl.className = "content-box__name";
     nameEl.textContent = item.name;
     contentBox.appendChild(nameEl);
+    if (!item.image) return; // Category-only selection has no image or fade in web/PNG.
 
     // <img>의 object-fit: cover 대신 background-image + background-size:
     // cover를 씁니다. PNG로 저장할 때 쓰는 html2canvas가 object-fit을
