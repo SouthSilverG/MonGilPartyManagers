@@ -436,9 +436,11 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
       // 기본 다운로드 폴더(예: 다운로드 폴더)로 저장해줍니다.
       canvas.toBlob((blob) => {
         if (!blob) {
+          window.MongilAnalytics?.track("png_generation_failed",{reason:"canvas_empty"});
           alert("PNG 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
           return;
         }
+        window.MongilAnalytics?.track("png_generated");
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
@@ -451,6 +453,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
           link.href = url;
           document.body.appendChild(link);
           link.click();
+          window.MongilAnalytics?.track("png_download_requested");
           link.remove();
 
           if (showFallbackPreview) {
@@ -497,6 +500,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
       }, "image/png");
     })
     .catch((err) => {
+      window.MongilAnalytics?.track("png_generation_failed",{reason:"capture_failed"});
       console.error("PNG 저장 실패:", err);
       alert(
         "PNG 저장 중 문제가 발생했습니다.\n\n" +
@@ -511,6 +515,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
 });
 
 function showPngPreview(url, filename) {
+  window.MongilAnalytics?.track("png_preview_opened");
   const overlay = document.getElementById("pngPreviewOverlay");
   const img = document.getElementById("pngPreviewImage");
   const dl = document.getElementById("pngPreviewDownload");
