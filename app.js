@@ -1,3 +1,4 @@
+let carriedDetailedStats=null;
 /* =====================================================================
    app.js — 화면을 그리고 클릭 동작을 처리합니다.
    보통은 이 파일을 건드릴 필요가 없습니다. 데이터만 바꾸려면 data.js를 수정하세요.
@@ -100,7 +101,6 @@ function render() {
   state.slots.forEach((slot, slotIndex) => {
     const card=renderSlot(slot, slotIndex);card.classList.toggle('mobile-slot-current',slotIndex===mobileSlotIndex);slotsEl.appendChild(card);
   });
-  if (window.DetailedEditor) window.DetailedEditor.refresh();
 }
 
 function renderSlot(slot, slotIndex) {
@@ -546,7 +546,7 @@ document.addEventListener("keydown", (e) => {
 });
 
 /* ---------- 클릭 위임 처리 ---------- */
-function handleSlotClick(e) {
+slotsEl.addEventListener("click", (e) => {
   const target = e.target.closest("[data-action]");
   if (!target) return;
 
@@ -613,8 +613,7 @@ function handleSlotClick(e) {
       },
     });
   }
-}
-slotsEl.addEventListener("click", handleSlotClick);
+});
 
 // 몬스터링 옵션 선택: 한 번 열면(옵션1~4 중 아무 칸이나 클릭) 빈 칸을 차례로
 // 채워나가고, 4칸이 다 채워지면 자동으로 닫힙니다. 이미 채워진 칸을 눌러서
@@ -844,7 +843,7 @@ function buildPartyExportPayload() {
     contentId: state.contentId,
     remarks: document.getElementById("remarksText").value,
     slots: state.slots,
-    detailedStats: window.DetailedEditor ? window.DetailedEditor.export() : undefined,
+    detailedStats: carriedDetailedStats,
   });
 }
 
@@ -891,8 +890,8 @@ function applyImportedPartyPayload(jsonText) {
 
   state.slots = newSlots;
   state.partyTitle = typeof data.partyTitle === "string" ? data.partyTitle : "";
+  carriedDetailedStats=data.detailedStats||null;
   state.contentId = typeof data.contentId === "string" ? data.contentId : null;
-  if (window.DetailedEditor) window.DetailedEditor.import(data.detailedStats);
 
   partyTitleInput.value = state.partyTitle;
   partyTitleAutoFilled = state.partyTitle.trim() === "";
@@ -968,45 +967,12 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
   // 있어서, 항상 스크롤이 0인 것처럼 캡처하도록 보정값을 함께 넘깁니다.
   html2canvas(captureArea, {
     backgroundColor: "#101214",
-    onclone: (doc) => {
-      doc.querySelectorAll(".mobile-party-tabs").forEach(el=>el.remove());
-      doc.getElementById("captureArea").classList.add("png-export");
-      const detailActive = window.DetailedEditor && window.DetailedEditor.active;
-      const inactive = doc.getElementById(detailActive ? 'slots' : 'detailEditor');
-      if (inactive) inactive.remove();
-      // Preserve the live document's resolved content URL when the clone has a different base.
-      const contentImage = document.querySelector('#contentBox .content-box__image');
-      const clonedContentImage = doc.querySelector('#contentBox .content-box__image');
-      if(contentImage && clonedContentImage) clonedContentImage.style.backgroundImage = getComputedStyle(contentImage).backgroundImage;
-      if(detailActive){
-          const board=doc.getElementById('captureArea');board.classList.add('detail-export');
-          board.style.cssText='width:1600px;max-width:none;margin:0;padding:24px;box-sizing:border-box';
-          doc.querySelector('.detail-character-tabs')?.remove();doc.querySelector('.detail-formula')?.remove();
-          doc.querySelectorAll('.detail-results details').forEach(el=>el.remove());
-          doc.getElementById('detailEffects')?.remove();
-          if(!remarksHasText)doc.querySelector('.remarks')?.remove();
-        }
-      doc.querySelectorAll('.modal-overlay,.party-title-box__input--capture-hidden,.remarks__textarea--capture-hidden').forEach(el => el.remove());
-      if(detailActive){
-        // Scale each element's resolved font once, without compounding inherited sizes.
-        const textSizes=[...doc.querySelectorAll('#captureArea, #captureArea *')].map(el=>[el,parseFloat(doc.defaultView.getComputedStyle(el).fontSize)]);
-        textSizes.forEach(([el,size])=>{if(Number.isFinite(size))el.style.fontSize=(size*1.1)+'px';});
-      }
-      doc.querySelectorAll('#captureArea input, #captureArea select, #captureArea textarea').forEach(el => {
-        const clone = doc.createElement('div');
-        const styles = doc.defaultView.getComputedStyle(el);
-        for (const key of ['font','padding','border','borderRadius','background','color','width','minHeight','boxSizing']) clone.style[key] = styles[key];
-        clone.style.whiteSpace = 'pre-wrap';
-        if (el.type === 'checkbox') clone.textContent = el.checked ? '✓' : '□';
-        else clone.textContent = el.tagName === 'SELECT' ? el.options[el.selectedIndex]?.textContent || '' : el.value || el.placeholder || '';
-        el.replaceWith(clone);
-      });
-    },
+    onclone:doc=>{doc.querySelectorAll(".mobile-party-tabs").forEach(el=>el.remove());const board=doc.getElementById("captureArea");board.classList.add("png-export");board.style.cssText="width:1440px;max-width:none;margin:0;padding:28px;box-sizing:border-box";},
     scale: isMobile ? 1 : 2,
     useCORS: true,
     scrollX: 0,
     scrollY: -window.scrollY,
-    windowWidth: window.DetailedEditor?.active ? 1800 : document.documentElement.scrollWidth,
+    windowWidth: 1800,
     windowHeight: document.documentElement.scrollHeight,
   })
     .then((canvas) => {
@@ -1035,14 +1001,10 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
         }
 
         window.MongilAnalytics?.track("png_generated");
-        window.MongilAnalytics?.trackBuilds(exportPayload,"png_save");
-        window.MongilBuildDB?.submit(exportPayload,"png_save");
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
-        const filename = window.DetailedEditor && window.DetailedEditor.active
-          ? `상세 스탯 에디터_${stamp}.png`
-          : `몬길스타다이브_파티_${stamp}.png`;
+        const filename = `몬길스타다이브_파티_${stamp}.png`;
 
         if(isMobile){showPngPreview(URL.createObjectURL(blob),filename,blob);return;}
 
@@ -1148,8 +1110,6 @@ uploadPngInput.addEventListener("change", async () => {
     }
     applyImportedPartyPayload(jsonText);
     window.MongilAnalytics?.track("png_import_succeeded");
-    window.MongilAnalytics?.trackBuilds(buildPartyExportPayload(),"png_import");
-    window.MongilBuildDB?.submit(buildPartyExportPayload(),"png_import");
     addHistoryEntry(jsonText); // 업로드한 파티도 "기록"에 남깁니다.
   } catch (err) {
     window.MongilAnalytics?.track("png_import_failed",{reason:"invalid_png_or_data"});
@@ -1460,7 +1420,7 @@ function renderContentBox() {
     // 방식으로 하면 웹 화면과 PNG 저장 양쪽에서 똑같이 잘 잘려서 보입니다.
     const img = document.createElement("span");
     img.className = "content-box__image";
-    img.style.backgroundImage = `url("${new URL(item.image, document.baseURI).href}")`;
+    img.style.backgroundImage = `url("${item.image}")`;
     img.setAttribute("role", "img");
     img.setAttribute("aria-label", item.name);
     contentBox.appendChild(img);
@@ -1511,4 +1471,4 @@ renderContentBox();
 /* ---------- 초기 렌더 ---------- */
 render();
 
-(function(){const key='mongil-editor-handoff';document.querySelectorAll('.app-sidebar a').forEach(a=>a.addEventListener('click',()=>{try{sessionStorage.setItem(key,buildPartyExportPayload());}catch(e){}}));try{const saved=sessionStorage.getItem(key);if(saved){sessionStorage.removeItem(key);sessionStorage.setItem('mongil-detail-restore',saved);applyImportedPartyPayload(saved);}}catch(e){}})();
+(function(){const key='mongil-editor-handoff';document.querySelectorAll('.app-sidebar a').forEach(a=>a.addEventListener('click',()=>{try{sessionStorage.setItem(key,buildPartyExportPayload());}catch(e){}}));try{const saved=sessionStorage.getItem(key);if(saved){sessionStorage.removeItem(key);applyImportedPartyPayload(saved);}}catch(e){}})();
