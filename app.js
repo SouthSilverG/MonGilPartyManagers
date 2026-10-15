@@ -1001,6 +1001,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
         }
 
         window.MongilAnalytics?.track("png_generated");
+        window.MongilAnalytics?.trackBuilds(exportPayload,"png_save");
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
@@ -1110,6 +1111,7 @@ uploadPngInput.addEventListener("change", async () => {
     }
     applyImportedPartyPayload(jsonText);
     window.MongilAnalytics?.track("png_import_succeeded");
+    window.MongilAnalytics?.trackBuilds(buildPartyExportPayload(),"png_import");
     addHistoryEntry(jsonText); // 업로드한 파티도 "기록"에 남깁니다.
   } catch (err) {
     window.MongilAnalytics?.track("png_import_failed",{reason:"invalid_png_or_data"});
