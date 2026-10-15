@@ -981,6 +981,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
       // 기본 다운로드 폴더(예: 다운로드 폴더)로 저장해줍니다.
       canvas.toBlob(async (blob) => {
         if (!blob) {
+          window.MongilAnalytics?.track("png_generation_failed",{reason:"canvas_empty"});
           alert("PNG 생성에 실패했습니다. 잠시 후 다시 시도해주세요.");
           return;
         }
@@ -999,6 +1000,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
           console.error("파티 데이터 저장 실패(이미지는 정상 저장됩니다):", err);
         }
 
+        window.MongilAnalytics?.track("png_generated");
         const now = new Date();
         const pad = (n) => String(n).padStart(2, "0");
         const stamp = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
@@ -1013,6 +1015,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
           link.href = url;
           document.body.appendChild(link);
           link.click();
+          window.MongilAnalytics?.track("png_download_requested");
           link.remove();
 
           if (showFallbackPreview) {
@@ -1059,6 +1062,7 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
       }, "image/png");
     })
     .catch((err) => {
+      window.MongilAnalytics?.track("png_generation_failed",{reason:"capture_failed"});
       console.error("PNG 저장 실패:", err);
       alert(
         "PNG 저장 중 문제가 발생했습니다.\n\n" +
@@ -1084,8 +1088,10 @@ uploadPngInput.addEventListener("change", async () => {
   // 같은 파일을 다시 선택해도 change 이벤트가 발생하도록 매번 비워둡니다.
   uploadPngInput.value = "";
   if (!file) return;
+  window.MongilAnalytics?.track("png_import_started");
 
   if (file.type && file.type !== "image/png" && !file.name.toLowerCase().endsWith(".png")) {
+    window.MongilAnalytics?.track("png_import_failed",{reason:"invalid_type"});
     alert("PNG 파일만 업로드할 수 있습니다.");
     return;
   }
@@ -1094,6 +1100,7 @@ uploadPngInput.addEventListener("change", async () => {
     const arrayBuffer = await file.arrayBuffer();
     const jsonText = extractPartyDataFromPng(arrayBuffer);
     if (!jsonText) {
+      window.MongilAnalytics?.track("png_import_failed",{reason:"missing_metadata"});
       alert(
         "이 PNG에서 파티 정보를 찾을 수 없습니다.\n\n" +
           "이 도구의 \"저장 (PNG)\" 버튼으로 저장한 파일만 다시 불러올 수 있어요. " +
@@ -1102,8 +1109,10 @@ uploadPngInput.addEventListener("change", async () => {
       return;
     }
     applyImportedPartyPayload(jsonText);
+    window.MongilAnalytics?.track("png_import_succeeded");
     addHistoryEntry(jsonText); // 업로드한 파티도 "기록"에 남깁니다.
   } catch (err) {
+    window.MongilAnalytics?.track("png_import_failed",{reason:"invalid_png_or_data"});
     console.error("PNG 업로드 실패:", err);
     alert(
       "파티를 불러오는 중 문제가 발생했습니다.\n\n" +
@@ -1278,6 +1287,7 @@ document.getElementById("historyClearAll").addEventListener("click", () => {
 });
 
 function showPngPreview(url, filename, blob) {
+  window.MongilAnalytics?.track("png_preview_opened");
   const overlay = document.getElementById("pngPreviewOverlay");
   const img = document.getElementById("pngPreviewImage");
   const dl = document.getElementById("pngPreviewDownload");
@@ -1289,7 +1299,7 @@ function showPngPreview(url, filename, blob) {
   if(!shareButton){shareButton=document.createElement('button');shareButton.id='pngPreviewShare';shareButton.type='button';shareButton.className='png-preview__download';shareButton.textContent='공유 / 이미지 저장';dl.insertAdjacentElement('afterend',shareButton);}
   const file=blob?new File([blob],filename,{type:'image/png'}):null;
   shareButton.hidden=!(file&&navigator.share&&navigator.canShare?.({files:[file]}));
-  shareButton.onclick=()=>navigator.share({files:[file],title:'몬길 에디터 PNG'}).catch(err=>{if(err.name!=='AbortError')alert('공유가 제한된 브라우저입니다. PNG 파일 저장 / 열기 또는 이미지 길게 누르기를 이용해주세요.');});
+  shareButton.onclick=()=>{window.MongilAnalytics?.track('png_share_requested');return navigator.share({files:[file],title:'몬길 에디터 PNG'}).catch(err=>{if(err.name!=='AbortError')alert('공유가 제한된 브라우저입니다. PNG 파일 저장 / 열기 또는 이미지 길게 누르기를 이용해주세요.');});};
   overlay.classList.remove("hidden");
 }
 
