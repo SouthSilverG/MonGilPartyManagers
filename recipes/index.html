@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><base href="../"><title>몬길 스타다이브 조합식 검색기</title><link rel="stylesheet" href="style.css?v=20261016-recipes"><link rel="stylesheet" href="recipes/style.css"></head><body><div class="app-shell">    <aside class="app-sidebar">
+      <div class="app-sidebar__brand">
+        <span class="app-sidebar__logo">MG</span>
+      </div>
+      <nav class="app-sidebar__nav">
+        <a href="index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">🎮</span>
+          <span class="app-sidebar__label">파티 에디터</span>
+        </a>
+        <a href="Statcal/index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">📊</span>
+          <span class="app-sidebar__label">상세 스탯 에디터</span>
+        </a>
+        <a href="calculator/index.html" class="app-sidebar__item">
+          <span class="app-sidebar__icon">₩</span>
+          <span class="app-sidebar__label">과금 효율</span>
+        </a>
+        <a href="recipes/index.html" class="app-sidebar__item is-active"><span class="app-sidebar__icon">🧩</span><span class="app-sidebar__label">조합식 검색기</span></a>
+      </nav>
+    </aside>
+
+<div class="app-content"><header class="toolbar"><div class="brand"><span class="brand__mark">🧩</span><div class="brand__text"><span class="brand__title">몬길 스타다이브</span><span class="brand__subtitle">조합식 검색기</span></div></div><span class="recipe-status">조합 성공률 100%</span></header>
+<main class="recipe-page"><section class="recipe-search"><p class="recipe-eyebrow">MONSTERLING RECIPES</p><h1>어떤 몬스터링을 만들까요?</h1><p class="recipe-intro">완성 몬스터링도, 중간 재료도 검색하세요. 필요한 재료부터 이어지는 조합까지 한 번에 확인할 수 있어요.</p><form id="searchForm" role="search"><label class="sr-only" for="recipeSearch">몬스터링 이름 검색</label><div class="search-field"><span aria-hidden="true">⌕</span><input id="recipeSearch" type="search" placeholder="청영, 석괴호, 이매망량…" autocomplete="off"><button type="button" id="clearSearch" aria-label="검색 초기화">지우기</button></div></form><div id="quickSearch" class="quick-search" aria-label="빠른 검색"></div></section>
+<section class="search-matches" aria-label="검색 결과"><div class="section-line"><h2>몬스터링 선택</h2><span id="matchCount" role="status" aria-live="polite"></span></div><div id="matchGrid" class="match-grid"></div><button id="moreMatches" class="more-matches" type="button" hidden>더 보기</button></section>
+<div id="recipeDetail" aria-label="선택한 몬스터링 조합식"></div>
+<p class="recipe-footnote">조합 성공률 100% 기준 · 재료 수량은 선택한 몬스터링 1개를 만드는 데 필요한 수량입니다.</p></main></div></div><script src="analytics-config.js"></script><script src="analytics.js"></script><script src="recipes/data.js"></script><script src="recipes/engine.js"></script><script src="recipes/app.js"></script></body></html>

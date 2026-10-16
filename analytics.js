@@ -4,15 +4,13 @@
   const optOutKey='mongil-analytics-opt-out';
   let active=false;
   const events=new Set(['page_view']);
-  const reasons=new Set(['canvas_empty','capture_failed','invalid_type','missing_metadata','invalid_png_or_data']);
-  function editor(){return /\/calculator(?:\/|$)/i.test(location.pathname)?'calculator':/\/Statcal(?:\/|$)/i.test(location.pathname)?'detail':'party';}
+  function editor(){return /\/recipes(?:\/|$)/i.test(location.pathname)?'recipes':/\/calculator(?:\/|$)/i.test(location.pathname)?'calculator':/\/Statcal(?:\/|$)/i.test(location.pathname)?'detail':'party';}
   function optedOut(){try{return localStorage.getItem(optOutKey)==='1';}catch(_){return false;}}
   const browserOptOut=()=>navigator.globalPrivacyControl===true||navigator.doNotTrack==='1';
-  function track(name,params={}){
+  function track(name){
     try{
       if(!active||optedOut()||browserOptOut()||!events.has(name))return false;
       const safe={editor:editor(),device_type:/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1)?'mobile':'desktop',send_to:id};
-      if(reasons.has(params.reason))safe.reason=params.reason;
       if(config.debug===true)safe.debug_mode=true;
       window.gtag('event',name,safe);return true;
     }catch(_){return false;}
