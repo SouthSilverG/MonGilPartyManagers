@@ -22,7 +22,7 @@
  function treePanel(id){const list=el('ol','recipe-tree');list.append(formula(graph.tree(id)));return list;}
  function section(title,subtitle){const block=el('section','detail-section'),head=el('div','section-heading');head.append(el('h2','',title));if(subtitle)head.append(el('p','',subtitle));block.append(head);return block;}
  function renderDetail(){
-  detail.replaceChildren();const monster=graph.monsters.get(selected);if(!monster)return;
+  detail.replaceChildren();const monster=graph.monsters.get(selected);if(!monster){detail.append(el('p','empty-state','몬스터링을 검색하거나 선택하면 조합식이 표시됩니다.'));return;}
   const hero=el('div','selected-heading');const img=el('img');img.src=monster.image;img.alt='';img.width=80;img.height=80;const text=el('div');text.append(el('p','recipe-eyebrow','SELECTED MONSTERLING'),el('h2','',monster.name));hero.append(img,text);detail.append(hero);
   if(graph.byResult.has(selected)){
    const ingredients=section('전체 재료 요약','하위 조합까지 펼친 기본 재료 · 완성품 1개 기준');const summary=el('div','material-summary');graph.leaves(selected).forEach(x=>summary.append(monsterButton(x,'monster-chip',x.count)));ingredients.append(summary);detail.append(ingredients);
@@ -39,12 +39,13 @@
   if(!matches.length)grid.append(el('p','empty-state','일치하는 몬스터링이 없습니다. 이름을 다시 확인해주세요.'));
   document.getElementById('matchCount').textContent=`${matches.length}종`;more.hidden=matches.length<=limit;
  }
+ function clearSelection(){selected=null;input.value='';limit=12;renderMatches();renderDetail();const url=new URL(location.href);url.hash='';history.replaceState(null,'',url);}
  function select(id){if(!graph.monsters.has(id))return;selected=id;input.value=graph.monsters.get(id).name;limit=12;renderMatches();renderDetail();const url=new URL(location.href);url.hash=id;history.replaceState(null,'',url);}
  input.addEventListener('input',()=>{limit=12;const exact=graph.search(input.value).find(x=>x.name.replace(/\s/g,'')===input.value.replace(/\s/g,''));if(exact)select(exact.id);else renderMatches();});
- document.getElementById('searchForm').addEventListener('submit',event=>{event.preventDefault();const first=graph.search(input.value)[0];if(first)select(first.id);});
- document.getElementById('clearSearch').addEventListener('click',()=>{input.value='';limit=12;renderMatches();input.focus();});
+ document.getElementById('searchForm').addEventListener('submit',event=>{event.preventDefault();if(!input.value.trim())return;const first=graph.search(input.value)[0];if(first)select(first.id);});
+ document.getElementById('clearSearch').addEventListener('click',()=>{clearSelection();input.focus();});
  more.addEventListener('click',()=>{limit+=24;renderMatches();});
  for(const name of ['청영','석괴호','이매망량','콜로서스 얼터']){const monster=graph.search(name).find(x=>x.name===name);if(monster){const button=el('button','quick-button',name);button.type='button';button.addEventListener('click',()=>{input.value=name;limit=12;select(monster.id);});document.getElementById('quickSearch').append(button);}}
- window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(graph.monsters.has(id)){selected=id;renderMatches();renderDetail();}});
- const initial=location.hash.slice(1);select(graph.monsters.has(initial)?initial:graph.search('청영')[0].id);
+ window.addEventListener('hashchange',()=>{const id=location.hash.slice(1);if(graph.monsters.has(id))select(id);else clearSelection();});
+ const initial=location.hash.slice(1);if(graph.monsters.has(initial))select(initial);else clearSelection();
 })();
