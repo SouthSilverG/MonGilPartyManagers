@@ -17,6 +17,11 @@
   for(const line of lines){const ws=line.words.sort((a,b)=>a.bbox.x0-b.bbox.x0);for(let i=0;i<ws.length;i++)for(let j=i;j<Math.min(ws.length,i+10);j++){const span=ws.slice(i,j+1);if(span.at(-1).bbox.x1-span[0].bbox.x0>800)break;add({text:span.map(w=>w.text).join(' '),confidence:Math.min(...span.map(w=>w.confidence)),bbox:{x0:span[0].bbox.x0,y0:Math.min(...span.map(w=>w.bbox.y0)),x1:span.at(-1).bbox.x1,y1:Math.max(...span.map(w=>w.bbox.y1))}});}}
   return {records:out,words};
  }
+ function layoutAnchors(all,width,allowPartial){
+  const observed=[1,2,3].map(i=>all.filter(r=>normalize(r.text)===i+'번슬롯').sort((a,b)=>b.confidence-a.confidence)[0]);
+  if(allowPartial&&observed.filter(Boolean).length===2){const known=observed.map((r,i)=>({r,i})).filter(x=>x.r&&x.r.confidence>=85);if(known.length===2){const [a,b]=known,pa=center(a.r),pb=center(b.r),step=(pb.x-pa.x)/(b.i-a.i),missing=observed.findIndex(x=>!x),cx=pa.x+(missing-a.i)*step;if(Math.abs(pb.y-pa.y)<width*.015&&step>width*.25&&step<width*.4&&cx>0&&cx<width&&pa.y<width*.2){const half=(a.r.bbox.x1-a.r.bbox.x0)/2;observed[missing]={text:(missing+1)+'번 슬롯',confidence:85,bbox:{x0:cx-half,x1:cx+half,y0:Math.min(a.r.bbox.y0,b.r.bbox.y0),y1:Math.max(a.r.bbox.y1,b.r.bbox.y1)}};}}}
+  return observed;
+ }
  function parse(data,width,height,catalog){
   const all=data.records||records(data).records,words=data.words||records(data).words;
   const inside=(r,b)=>{const p=center(r);return p.x>=b.x0&&p.x<b.x1&&p.y>=b.y0&&p.y<b.y1;};
@@ -37,7 +42,8 @@
    const ids=[...new Set(a.map(x=>x.id))];if(ids.length!==1)error();return a.sort((a,b)=>b.confidence-a.confidence)[0];
   };
   const whole={x0:0,y0:0,x1:width,y1:height},anchors=[];
-  for(let i=1;i<=3;i++){const a=within(whole).filter(r=>normalize(r.text)===i+'번슬롯');if(!a.length)error();anchors.push(a.sort((a,b)=>b.confidence-a.confidence)[0]);}
+  const observed=layoutAnchors(within(whole),width,catalog.allowPartial);
+  for(const a of observed){if(!a)error();anchors.push(a);}
   const points=anchors.map(center),horizontal=points[2].x-points[0].x>width*.4&&Math.max(...points.map(p=>p.y))-Math.min(...points.map(p=>p.y))<height*.06;
   const vertical=points[2].y-points[0].y>height*.35&&Math.max(...points.map(p=>p.x))-Math.min(...points.map(p=>p.x))<width*.12;
   if(!horizontal&&!vertical)error();
@@ -81,7 +87,11 @@
       for(let k=0;k<4;k++)types[k]=read(label+'몬스터링 '+(row+1)+' 옵션 '+(k+1),()=>{if(xs.length!==2||dy.length!==2)error();const splitX=(xs[0]+xs[1])/2,splitY=center(name).y+(dy[0]+dy[1])/2,candidates=group.filter(r=>(center(r).x>=splitX)===(k%2===1)&&(center(r).y>=splitY)===(k>=2)),ids=[...new Set(candidates.map(r=>r.id))];if(ids.length!==1||used.has(ids[0]))error();used.add(ids[0]);return ids[0];});
       slot.rings['ring'+(row+1)]=types;
      }
-    }else warnings.push(label+'몬스터링·옵션 (행 위치 판독 실패)');
+    }else{
+     const ys=cluster(opts.map(r=>center(r).y),20*scale),xs=cluster(opts.map(r=>center(r).x),30*scale);
+     if(ys.length===6&&xs.length===2){for(let row=0;row<3;row++){const rb={...ringBounds,y0:row?(ys[row*2-1]+ys[row*2])/2:ringBounds.y0,y1:row===2?ys[5]+45*scale:(ys[row*2+1]+ys[row*2+2])/2};slot.ringMonsters['ring'+(row+1)]=read(label+'몬스터링 '+(row+1),()=>one(catalog.monsters,rb).id);const used=new Set();slot.rings['ring'+(row+1)]=Array.from({length:4},(_,k)=>read(label+'몬스터링 '+(row+1)+' 옵션 '+(k+1),()=>{const midX=(xs[0]+xs[1])/2,midY=(ys[row*2]+ys[row*2+1])/2,cell={...rb,x0:k%2?midX:b.x0+(b.x1-b.x0)*.32,x1:k%2?b.x1:midX,y0:k>=2?midY:rb.y0,y1:k>=2?rb.y1:midY};const id=one(catalog.options,cell).id;if(used.has(id))error();used.add(id);return id;}));}}
+     else warnings.push(label+'몬스터링·옵션 (행 위치 판독 실패)');
+    }
     const gearBounds=vertical?{...b,y1:ringStart??b.y1}:{...b,y0:opts.length?Math.max(...opts.map(r=>r.bbox.y1)):b.y1};
     keys.forEach((key,j)=>{
      const box=read(label+gearNames[j]+' 위치',()=>{if(horizontal){const cell=(b.x1-b.x0)/4;return {...gearBounds,x0:b.x0+j*cell,x1:b.x0+(j+1)*cell};}const head=within(gearBounds).find(r=>normalize(r.text)===gearNames[j]);if(!head)error();return {x0:j%2?width*.5:width*.17,x1:j%2?width*.79:width*.5,y0:head.bbox.y0,y1:head.bbox.y0+155*scale};});
@@ -171,6 +181,28 @@
   }
   return extracted;
  }
+ async function refinePartyCells(canvas,data,worker,catalog){
+  if(canvas.height>canvas.width*1.5)return data;const anchors=layoutAnchors(data.records.filter(r=>r.confidence>=70),canvas.width,true);if(anchors.some(x=>!x))return data;const scale=canvas.width/1440,iw=((1440-56-40)/3-30)*scale;
+  await worker.setParameters({tessedit_pageseg_mode:'6'});
+  try{for(let i=0;i<3;i++){const cx=center(anchors[i]).x,left=cx-iw/2,inSlot=r=>Math.abs(center(r).x-cx)<canvas.width/6&&r.bbox.y0>anchors[i].bbox.y1;
+   const chars=data.records.filter(inSlot).filter(r=>r.confidence>=75&&catalog.characters.some(c=>normalize(c.name)===normalize(r.text))).sort((a,b)=>normalize(b.text).length-normalize(a.text).length||b.confidence-a.confidence);if(!chars.length)continue;
+   const arts=data.records.filter(inSlot).filter(r=>r.confidence>=75&&catalog.artifacts.some(c=>normalize(c.name)===normalize(r.text))).sort((a,b)=>b.confidence-a.confidence),bottom=arts[0]?.bbox.y1??chars[0].bbox.y1+56*scale,top=bottom+28*scale;
+   for(let row=0;row<3;row++)for(let cell=0;cell<5;cell++){
+    const name=cell===0,k=cell-1,x=name?left:left+iw*(1.7/5.7)+(k%2)*iw*(2/5.7),y=top+row*120*scale+(name?62:k>=2?56:2)*scale,w=iw*(name?1.7/5.7:2/5.7),h=(name?55:54)*scale,crop=document.createElement('canvas');crop.width=Math.round(w*3);crop.height=Math.round(h*3);const ctx=crop.getContext('2d',{willReadFrequently:true});ctx.drawImage(canvas,x,y,w,h,0,0,crop.width,crop.height);const pixels=ctx.getImageData(0,0,crop.width,crop.height);for(let n=0;n<pixels.data.length;n+=4){const v=Math.min(pixels.data[n],pixels.data[n+1],pixels.data[n+2])>110?0:255;pixels.data[n]=pixels.data[n+1]=pixels.data[n+2]=v;}ctx.putImageData(pixels,0,0);
+    try{const found=records((await timed(worker.recognize(crop,{}, {text:true,blocks:true}),30000)).data),items=name?catalog.monsters:catalog.options;for(const r of found.records)if(r.confidence>=75&&items.some(m=>normalize(m.name)===normalize(r.text)))data.records.push({...r,bbox:{x0:x+r.bbox.x0/3,x1:x+r.bbox.x1/3,y0:y+r.bbox.y0/3,y1:y+r.bbox.y1/3}});}finally{crop.width=0;crop.height=0;}
+   }
+  }}finally{await worker.setParameters({tessedit_pageseg_mode:'11'});}return data;
+ }
+ async function refineCharacterHeaders(canvas,data,worker,catalog){
+  if(canvas.height<=canvas.width*1.5)return data;const scale=canvas.width/1600;
+  await worker.setParameters({tessedit_pageseg_mode:'7'});
+  try{for(let i=1;i<=3;i++){const anchor=data.records.find(r=>normalize(r.text)===i+'번슬롯'&&r.confidence>=75);if(!anchor)continue;const x=Math.round(canvas.width*.18),y=Math.round(anchor.bbox.y0-10*scale),w=Math.round(canvas.width*.45),h=Math.round(42*scale),crop=document.createElement('canvas');crop.width=w*3;crop.height=h*3;const ctx=crop.getContext('2d',{willReadFrequently:true});ctx.drawImage(canvas,x,y,w,h,0,0,crop.width,crop.height);const pixels=ctx.getImageData(0,0,crop.width,crop.height);for(let k=0;k<pixels.data.length;k+=4){const v=Math.min(pixels.data[k],pixels.data[k+1],pixels.data[k+2])>120?0:255;pixels.data[k]=pixels.data[k+1]=pixels.data[k+2]=v;}ctx.putImageData(pixels,0,0);try{const found=records((await timed(worker.recognize(crop,{}, {text:true,blocks:true}),30000)).data);for(const r of found.records)if(r.confidence>=75&&catalog.characters.some(c=>normalize(c.name)===normalize(r.text)))data.records.push({...r,bbox:{x0:x+r.bbox.x0/3,x1:x+r.bbox.x1/3,y0:y+r.bbox.y0/3,y1:y+r.bbox.y1/3}});}finally{crop.width=0;crop.height=0;}}}finally{await worker.setParameters({tessedit_pageseg_mode:'11'});}return data;
+ }
+ async function refineAnchors(canvas,data,worker){
+  if(canvas.height>canvas.width*1.5)return data;
+  await worker.setParameters({tessedit_pageseg_mode:'7'});
+  try{for(let i=0;i<3;i++){if(data.records.some(r=>normalize(r.text)===(i+1)+'번슬롯'&&r.confidence>=85))continue;const cx=canvas.width*(.175+i*.325),x=Math.round(cx-canvas.width*.07),y=Math.round(canvas.width*.095),w=Math.round(canvas.width*.14),h=Math.round(canvas.width*.025),crop=document.createElement('canvas');crop.width=w*3;crop.height=h*3;const ctx=crop.getContext('2d',{willReadFrequently:true});ctx.drawImage(canvas,x,y,w,h,0,0,crop.width,crop.height);const pixels=ctx.getImageData(0,0,crop.width,crop.height);for(let k=0;k<pixels.data.length;k+=4){const v=Math.min(pixels.data[k],pixels.data[k+1],pixels.data[k+2])>120?0:255;pixels.data[k]=pixels.data[k+1]=pixels.data[k+2]=v;}ctx.putImageData(pixels,0,0);try{const found=records((await timed(worker.recognize(crop,{}, {text:true,blocks:true}),30000)).data);for(const r of found.records)if(normalize(r.text)===(i+1)+'번슬롯'&&r.confidence>=75)data.records.push({...r,bbox:{x0:x+r.bbox.x0/3,x1:x+r.bbox.x1/3,y0:y+r.bbox.y0/3,y1:y+r.bbox.y1/3}});}finally{crop.width=0;crop.height=0;}}}finally{await worker.setParameters({tessedit_pageseg_mode:'11'});}return data;
+ }
  function numericGlyphCount(pixels,width,height,minArea){
   const seen=new Uint8Array(width*height),queue=new Int32Array(width*height);let count=0;
   for(let start=0;start<seen.length;start++){if(seen[start]||pixels[start*4]!==0)continue;let tail=1,head=0;queue[0]=start;seen[start]=1;while(head<tail){const at=queue[head++],x=at%width,y=Math.floor(at/width);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const xx=x+dx,yy=y+dy;if(xx<0||xx>=width||yy<0||yy>=height)continue;const next=yy*width+xx;if(!seen[next]&&pixels[next*4]===0){seen[next]=1;queue[tail++]=next;}}}if(tail>=minArea)count++;
@@ -213,20 +245,20 @@
    try{const found=records((await timed(worker.recognize(tile,{}, {text:true,blocks:true}),120000)).data);for(const key of ['records','words'])for(const r of found[key]){const cy=center(r).y+top;if(cy<y||cy>=y+step)continue;result[key].push({...r,bbox:{...r.bbox,y0:r.bbox.y0+top,y1:r.bbox.y1+top}});}}finally{tile.width=0;tile.height=0;}
   }return result;
  }
- const timed=(promise,ms)=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('인식 시간이 초과됐습니다. 원본 PNG로 다시 시도해주세요.')),ms);promise.then(value=>{clearTimeout(timer);resolve(value);},err=>{clearTimeout(timer);reject(err);});});
+ const timed=(promise,ms)=>new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('인식 시간이 초과됐습니다. 원본 이미지로 다시 시도해주세요.')),ms);promise.then(value=>{clearTimeout(timer);resolve(value);},err=>{clearTimeout(timer);reject(err);});});
  let library;
  function loadOcr(){if(window.Tesseract)return Promise.resolve();if(!library)library=new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js';script.onload=resolve;script.onerror=()=>{script.remove();library=null;reject(new Error('문자 인식 파일을 내려받지 못했습니다. 네트워크 연결을 확인해주세요.'));};document.head.append(script);});return library;}
  async function recognize(file,catalog,progress){
-  if(file.size>25*1024*1024)error('25MB 이하의 PNG로 시도해주세요.');let worker,bitmap,canvas,initialization;
+  if(file.size>25*1024*1024)error('25MB 이하의 이미지로 시도해주세요.');let worker,bitmap,canvas,initialization;
   try{
-   const header=new Uint8Array(await file.slice(0,24).arrayBuffer());if(header.length<24||![137,80,78,71,13,10,26,10].every((x,i)=>header[i]===x))error();const view=new DataView(header.buffer),originalWidth=view.getUint32(16),originalHeight=view.getUint32(20);
-   if(originalWidth<900||originalHeight<500||originalWidth*originalHeight>40000000)error('이미지가 너무 작거나 큽니다. 원본 에디터 PNG로 시도해주세요.');
-   const ratio=Math.min(1,2400/originalWidth,Math.sqrt((originalHeight>originalWidth*1.5?16000000:8000000)/(originalWidth*originalHeight))),targetWidth=Math.round(originalWidth*ratio),targetHeight=Math.round(originalHeight*ratio);
-   bitmap=await createImageBitmap(file);canvas=document.createElement('canvas');canvas.width=targetWidth;canvas.height=targetHeight;const ctx=canvas.getContext('2d',originalHeight>originalWidth*1.5?{}:{willReadFrequently:true});ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();bitmap=null;
+   const info=window.MongilPngRecognition.imageInfo(await file.arrayBuffer()),originalWidth=info.width,originalHeight=info.height;
+   if(originalWidth<900||originalHeight<500||originalWidth*originalHeight>40000000)error('이미지가 너무 작거나 큽니다. 원본 에디터 이미지로 시도해주세요.');
+   const ratio=Math.min(Math.max(1,1920/originalWidth),2400/originalWidth,Math.sqrt((originalHeight>originalWidth*1.5?16000000:8000000)/(originalWidth*originalHeight))),targetWidth=Math.round(originalWidth*ratio),targetHeight=Math.round(originalHeight*ratio);
+   bitmap=await createImageBitmap(file);if(bitmap.width*bitmap.height>40000000)error('이미지가 너무 큽니다. 40MP 이하로 시도해주세요.');canvas=document.createElement('canvas');canvas.width=targetWidth;canvas.height=targetHeight;const ctx=canvas.getContext('2d',originalHeight>originalWidth*1.5?{}:{willReadFrequently:true});ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();bitmap=null;
    const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;let dark=0,total=0;for(let i=0;i<pixels.length;i+=160){total++;if(Math.max(pixels[i],pixels[i+1],pixels[i+2])<95)dark++;}if(dark/total<.5)error();
    await timed(loadOcr(),30000);initialization=Tesseract.createWorker('kor+eng',1,{logger:event=>{if(event.status==='recognizing text')progress('문자와 표를 읽고 있습니다… '+Math.round(event.progress*100)+'%');else progress('인식 파일을 준비하고 있습니다…');}});worker=await timed(initialization,120000);await worker.setParameters({tessedit_pageseg_mode:'11'});
-   const result=await readCanvas(canvas,worker);if(canvas.height>canvas.width*1.5){await refineDetail(canvas,result,worker);await refineFoods(canvas,result,worker);await refineRingCaptions(canvas,result,worker,catalog);await refineNumbers(canvas,result,worker);}progress('에디터 형식과 모든 항목을 확인하고 있습니다…');const extracted=await addVisualIcons(canvas,result,catalog);return parse(extracted,canvas.width,canvas.height,catalog);
+   const result=await readCanvas(canvas,worker);await refineAnchors(canvas,result,worker);await refinePartyCells(canvas,result,worker,catalog);if(canvas.height>canvas.width*1.5){await refineDetail(canvas,result,worker);await refineCharacterHeaders(canvas,result,worker,catalog);await refineFoods(canvas,result,worker);await refineRingCaptions(canvas,result,worker,catalog);await refineNumbers(canvas,result,worker);}if(catalog.allowPartial){for(const anchor of layoutAnchors(result.records.filter(r=>r.confidence>=70),canvas.width,true))if(anchor&&!result.records.includes(anchor))result.records.push(anchor);}progress('에디터 형식과 모든 항목을 확인하고 있습니다…');const extracted=await addVisualIcons(canvas,result,catalog);return parse(extracted,canvas.width,canvas.height,catalog);
   }finally{bitmap?.close();if(worker)await worker.terminate();else if(initialization)initialization.then(late=>late.terminate(),()=>{});if(canvas){canvas.width=0;canvas.height=0;}}
  }
- window.MongilImageReader=Object.freeze({recognize,parse,normalize,records,numericGlyphCount,refineRingCaptions,refineDetail,refineFoods,readCanvas,matchIcons:addVisualIcons});
+ window.MongilImageReader=Object.freeze({recognize,parse,normalize,records,numericGlyphCount,refineAnchors,refineRingCaptions,refineDetail,refineFoods,readCanvas,matchIcons:addVisualIcons});
 })();

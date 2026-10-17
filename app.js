@@ -1084,14 +1084,11 @@ uploadPngInput.addEventListener("change", async () => {
   uploadPngInput.value = "";
   if (!file) return;
 
-  if (file.type && file.type !== "image/png" && !file.name.toLowerCase().endsWith(".png")) {
-    alert("PNG 파일만 업로드할 수 있습니다.");
-    return;
-  }
-
+  if (file.size > 25 * 1024 * 1024) { alert('25MB 이하의 이미지를 선택해주세요.'); return; }
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const jsonText = extractPartyDataFromPng(arrayBuffer);
+    const info = window.MongilPngRecognition.imageInfo(arrayBuffer);
+    const jsonText = info.format === 'png' ? extractPartyDataFromPng(arrayBuffer) : null;
     if (!jsonText) {
       const payload=await window.MongilPngRecognition.request(file,{
         characters:CHARACTERS,artifacts:ARTIFACTS,legends:LEGEND_MONSTERS,
@@ -1112,7 +1109,7 @@ uploadPngInput.addEventListener("change", async () => {
     applyImportedPartyPayload(jsonText);
     addHistoryEntry(jsonText); // 업로드한 파티도 "기록"에 남깁니다.
   } catch (err) {
-    console.error("PNG 업로드 실패:", err);
+    console.error("이미지 업로드 실패:", err);
     alert(
       "파티를 불러오는 중 문제가 발생했습니다.\n\n" +
         (err && err.message ? err.message : err)
@@ -1180,7 +1177,7 @@ function renderHistoryList() {
   if (list.length === 0) {
     const empty = document.createElement("div");
     empty.className = "history-modal__empty";
-    empty.textContent = "아직 기록이 없습니다. 저장(PNG)하거나 PNG를 업로드하면 여기에 쌓여요.";
+    empty.textContent = "아직 기록이 없습니다. 저장(PNG)하거나 이미지를 업로드하면 여기에 쌓여요.";
     historyListEl.appendChild(empty);
     return;
   }
