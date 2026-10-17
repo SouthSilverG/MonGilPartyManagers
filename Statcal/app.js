@@ -1132,14 +1132,17 @@ uploadPngInput.addEventListener("change", async () => {
       const payload=await window.MongilPngRecognition.request(file,{
         characters:CHARACTERS,artifacts:ARTIFACTS,legends:LEGEND_MONSTERS,
         monsters:MONSTERS.filter(x=>!LEGEND_ONLY_MONSTER_IDS.has(x.id)&&!LEGEND_MONSTERS.some(y=>y.name===x.name)),
-        equipment:EQUIPMENT,options:TRAIT_OPTIONS,contents:Object.values(CONTENTS).flat(),
+        equipment:EQUIPMENT,options:TRAIT_OPTIONS,contents:Object.values(CONTENTS).flat(),allowPartial:true,
         detailDefaults:window.DetailedEditor?.engine.defaults(),
       });
       if(!payload)return;
+      const recognitionWarnings=payload.recognitionWarnings||[];
+      delete payload.recognitionWarnings;
       const recognized=JSON.stringify(payload);
       const previous=buildPartyExportPayload();
       try{applyImportedPartyPayload(recognized);}catch(error){applyImportedPartyPayload(previous);throw error;}
       addHistoryEntry(recognized);
+      window.MongilPngRecognition.report(recognitionWarnings);
       return;
     }
     applyImportedPartyPayload(jsonText);
