@@ -904,7 +904,7 @@ function applyImportedPartyPayload(jsonText) {
 }
 
 /* ---------- PNG로 저장 ---------- */
-document.getElementById("btnSavePng").addEventListener("click", () => {
+document.getElementById("btnSavePng").addEventListener("click", async () => {
   // file:// 로 index.html을 직접 더블클릭해서 연 경우, 브라우저 보안 정책 때문에
   // 캔버스가 "오염(tainted)"되어 이미지 저장이 조용히 실패할 수 있습니다.
   // 이 경우 아래 에러가 나기 전에 미리 안내하고 중단합니다.
@@ -917,6 +917,14 @@ document.getElementById("btnSavePng").addEventListener("click", () => {
     );
     return;
   }
+
+  const saveButton = document.getElementById("btnSavePng");
+  if (saveButton.disabled) return;
+  saveButton.disabled = true;
+  let html2canvas;
+  try { html2canvas = await MongilPngRenderer.load(); }
+  catch (error) { alert(error.message); return; }
+  finally { saveButton.disabled = false; }
 
   // 모바일 브라우저(특히 iOS Safari)는 <a download> + blob 방식을
   // PC와 똑같이 처리해주지 않는 경우가 많습니다(다운로드 대신 그냥 열리거나
