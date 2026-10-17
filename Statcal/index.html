@@ -5,7 +5,7 @@
 <base href="../" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>몬길 스타다이브 상세 스탯 에디터</title>
-<link rel="stylesheet" href="style.css?v=20261017-formats8" />
+<link rel="stylesheet" href="style.css?v=20261017-history1" />
 <link rel="stylesheet" href="Statcal/stats-editor.css" />
 </head>
 <body>
@@ -46,15 +46,17 @@
             <span class="btn-history__icon">🕘</span>
             기록
           </button>
+          <button id="btnUploadHistory" class="btn-history" type="button">📂 기록 업로드</button>
+          <input id="uploadHistoryInput" type="file" accept=".txt,text/plain" style="display: none" />
           <button id="btnReset" class="btn-history" type="button">
             <span class="btn-history__icon">↺</span>
             초기화
           </button>
           <button id="btnUploadPng" class="btn-upload-png" type="button">
             <span class="btn-upload-png__icon">⬆</span>
-            업로드 (이미지)
+            업로드 (PNG)
           </button>
-          <input id="uploadPngInput" type="file" accept="image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp" style="display: none" />
+          <input id="uploadPngInput" type="file" accept="image/png,.png" style="display: none" />
           <button id="btnSavePng" class="btn-save-png">
             <span class="btn-save-png__icon">⬇</span>
             저장 (PNG)
@@ -170,17 +172,18 @@
       <div id="historyList" class="history-modal__list"></div>
       <div class="history-modal__footer">
         <span class="history-modal__hint">저장/업로드할 때마다 이 브라우저에 자동으로 쌓입니다. 클릭하면 현재 화면이 그 파티로 바뀝니다.</span>
+        <button id="historyDownload" class="btn-history" type="button">기록 다운로드 (.txt)</button>
         <button id="historyClearAll" class="history-modal__clear" type="button">전체 삭제</button>
       </div>
     </div>
   </div>
 
-  <script src="png-recognition.js?v=20261017-formats8"></script>
+  <script src="history-backup.js?v=20261017-history1"></script>
   <script src="analytics-config.js"></script>
   <script src="analytics.js"></script>
   <script src="vendor/html2canvas.min.js"></script>
   <script src="data.js"></script>
-  <script src="Statcal/app.js?v=20261017-formats8"></script>
+  <script src="Statcal/app.js?v=20261017-history1"></script>
   <script src="Statcal/stats-data.js"></script>
   <script src="Statcal/stats-engine.js"></script>
   <script src="Statcal/stats-editor.js"></script>

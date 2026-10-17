@@ -1120,32 +1120,20 @@ uploadPngInput.addEventListener("change", async () => {
   uploadPngInput.value = "";
   if (!file) return;
 
-  if (file.size > 25 * 1024 * 1024) { alert('25MB 이하의 이미지를 선택해주세요.'); return; }
+  if (file.type && file.type !== 'image/png' && !file.name.toLowerCase().endsWith('.png')) {
+    alert('PNG 파일만 업로드할 수 있습니다. 기록 파일은 기록 업로드를 이용해주세요.');
+    return;
+  }
+  if (file.size > 25 * 1024 * 1024) { alert('25MB 이하의 PNG를 선택해주세요.'); return; }
   try {
     const arrayBuffer = await file.arrayBuffer();
-    const info = window.MongilPngRecognition.imageInfo(arrayBuffer);
-    const jsonText = info.format === 'png' ? extractPartyDataFromPng(arrayBuffer) : null;
-    if (!jsonText) {
-      const payload=await window.MongilPngRecognition.request(file,{
-        characters:CHARACTERS,artifacts:ARTIFACTS,legends:LEGEND_MONSTERS,
-        monsters:MONSTERS.filter(x=>!LEGEND_ONLY_MONSTER_IDS.has(x.id)&&!LEGEND_MONSTERS.some(y=>y.name===x.name)),
-        equipment:EQUIPMENT,options:TRAIT_OPTIONS,contents:Object.values(CONTENTS).flat(),allowPartial:true,
-        detailDefaults:window.DetailedEditor?.engine.defaults(),
-      });
-      if(!payload)return;
-      const recognitionWarnings=payload.recognitionWarnings||[];
-      delete payload.recognitionWarnings;
-      const recognized=JSON.stringify(payload);
-      const previous=buildPartyExportPayload();
-      try{applyImportedPartyPayload(recognized);}catch(error){applyImportedPartyPayload(previous);throw error;}
-      addHistoryEntry(recognized);
-      window.MongilPngRecognition.report(recognitionWarnings);
-      return;
-    }
+    if (!checkPngSignature(new Uint8Array(arrayBuffer))) throw new Error('PNG 파일 형식이 아닙니다.');
+    const jsonText = extractPartyDataFromPng(arrayBuffer);
+    if (!jsonText) throw new Error('편성 정보가 없는 PNG입니다. 에디터에서 저장한 원본 PNG 또는 기록 TXT 파일을 사용해주세요.');
     applyImportedPartyPayload(jsonText);
     addHistoryEntry(jsonText); // 업로드한 파티도 "기록"에 남깁니다.
   } catch (err) {
-    console.error("이미지 업로드 실패:", err);
+    console.error("PNG 업로드 실패:", err);
     alert(
       "파티를 불러오는 중 문제가 발생했습니다.\n\n" +
         (err && err.message ? err.message : err)
@@ -1213,7 +1201,7 @@ function renderHistoryList() {
   if (list.length === 0) {
     const empty = document.createElement("div");
     empty.className = "history-modal__empty";
-    empty.textContent = "아직 기록이 없습니다. 저장(PNG)하거나 이미지를 업로드하면 여기에 쌓여요.";
+    empty.textContent = "아직 기록이 없습니다. 저장(PNG)하거나 PNG를 업로드하면 여기에 쌓여요.";
     historyListEl.appendChild(empty);
     return;
   }
@@ -1495,6 +1483,12 @@ contentBox.addEventListener("click", openContentModal);
 contentModalClose.addEventListener("click", closeContentModal);
 contentModalOverlay.addEventListener("click", (e) => {
   if (e.target === contentModalOverlay) closeContentModal();
+});
+
+MongilHistoryBackup.bind({
+  key: HISTORY_KEY, max: HISTORY_MAX, load: loadHistory,
+  current: buildPartyExportPayload, apply: applyImportedPartyPayload,
+  render: renderHistoryList, close: closeHistory,
 });
 
 renderContentBox();
