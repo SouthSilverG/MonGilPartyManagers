@@ -1305,3 +1305,5 @@ body {
 }
 
 .png-recognition-dialog{width:min(460px,calc(100vw - 32px));max-height:85dvh;overflow:auto;border:1px solid var(--border-strong);border-radius:14px;padding:24px;background:var(--panel);color:var(--text-primary);font:15px/1.7 sans-serif}.png-recognition-dialog::backdrop{background:#000b}.png-recognition-dialog h2{font-size:20px;margin:0 0 14px}.png-recognition-dialog p{margin:10px 0}.png-recognition-note{font-size:12px;color:var(--text-secondary)}.png-recognition-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}.png-recognition-actions button{border:1px solid var(--border-strong);border-radius:8px;padding:10px 20px;font:inherit;color:var(--text-primary);background:var(--panel-2);cursor:pointer}.png-recognition-actions button[value="recognize"]{background:var(--accent);color:white}.png-recognition-actions button:focus-visible{outline:2px solid white;outline-offset:3px}
+
+.png-recognition-missing{max-height:40dvh;overflow:auto;padding-left:22px;overflow-wrap:anywhere}.png-recognition-missing li{margin:5px 0}

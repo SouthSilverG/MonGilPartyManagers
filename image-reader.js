@@ -44,7 +44,58 @@
   if(vertical&&!catalog.detailDefaults)error('상세 스탯 이미지는 상세 스탯 에디터에서 업로드해주세요.');
   const detail=vertical?JSON.parse(JSON.stringify(catalog.detailDefaults)):null;
   const order=(a,b)=>center(a).y-center(b).y||center(a).x-center(b).x;
-  function numberBelow(label,b,min,max){const a=within(b).filter(r=>normalize(r.text)===normalize(label));if(!a.length)error();const anchor=a.sort((a,b)=>b.confidence-a.confidence)[0],p=center(anchor),scale=width/(vertical?1600:1440);const choices=words.filter(r=>r.confidence>=85&&inside(r,b)&&/^\d+(?:\.\d+)?$/.test(r.text.trim())&&Math.abs(center(r).x-p.x)<40*scale&&r.bbox.y0>=anchor.bbox.y1&&r.bbox.y0-anchor.bbox.y1<85*scale).sort((a,b)=>a.bbox.y0-b.bbox.y0);if(!choices.length)error();const value=Number(choices[0].text);if(value<min||value>max||choices.some(r=>Math.abs(r.bbox.y0-choices[0].bbox.y0)<8*scale&&Number(r.text)!==value))error();return value;}
+  function numberBelow(label,b,min,max){const a=within(b).filter(r=>normalize(r.text)===normalize(label));if(!a.length)error();const anchor=a.sort((a,b)=>b.confidence-a.confidence)[0],p=center(anchor),scale=width/(vertical?1600:1440);const choices=words.filter(r=>r.confidence>=85&&inside(r,b)&&/^\d+(?:\.\d+)?$/.test(r.text.trim())&&Math.abs(center(r).x-p.x)<40*scale&&r.bbox.y0>=anchor.bbox.y1&&r.bbox.y0-anchor.bbox.y1<85*scale).sort((a,b)=>a.bbox.y0-b.bbox.y0);if(!choices.length)error();const verified=choices.filter(r=>r.numericCell);if((data.numericCheckMode||data.numericChecks?.some(c=>Math.abs(c.x-p.x)<40*scale&&Math.abs(c.y-p.y)<15*scale))&&!verified.length)error();if(verified.length)choices.splice(0,choices.length,...verified);const value=Number(choices[0].text);if(value<min||value>max||choices.some(r=>Math.abs(r.bbox.y0-choices[0].bbox.y0)<8*scale&&Number(r.text)!==value))error();return value;}
+  if(catalog.allowPartial){
+   const warnings=[];let recognized=0;
+   const read=(label,fn,fallback=null)=>{try{const value=fn();recognized++;return value;}catch(_){warnings.push(label);return fallback;}};
+   const header={x0:width*.66,x1:width,y0:0,y1:Math.min(anchors[0].bbox.y0*.45,width/1600*115)};
+   const contentId=catalog.contents?read('콘텐츠',()=>{if(within(header).some(r=>['컨텐츠설정','콘텐츠설정'].includes(normalize(r.text))))return null;return one(catalog.contents,header).id;}):null;
+   if(detail)for(let j=0;j<2;j++){const key=j?'foodSide':'foodMain',box={x0:width*(j?.66:.33),x1:width*(j?1:.66),y0:header.y1,y1:anchors[0].bbox.y0};detail[key]=read(j?'사이드 요리':'메인 요리',()=>{if(within(box).some(r=>normalize(r.text)==='요리선택'))return null;return one(catalog.foods?.[key]||[],box).id;});}
+   const cluster=(values,tolerance)=>{const groups=[];for(const value of values.sort((a,b)=>a-b)){let group=groups.find(g=>Math.abs(g.reduce((a,b)=>a+b,0)/g.length-value)<tolerance);if(!group)groups.push(group=[]);group.push(value);}return groups.map(g=>g.reduce((a,b)=>a+b,0)/g.length);};
+   const keys=['hat','top','gloves','shoes'],gearNames=['모자','상의','장갑','신발'];
+   const slots=anchors.map((anchor,i)=>{
+    const label=(i+1)+'번 슬롯 ',scale=width/(vertical?1600:1440);
+    const b=horizontal?{x0:i?(points[i-1].x+points[i].x)/2:0,x1:i===2?width:(points[i].x+points[i+1].x)/2,y0:anchor.bbox.y0,y1:height}:{x0:0,x1:width*.79,y0:anchor.bbox.y0,y1:i===2?height:anchors[i+1].bbox.y0};
+    const character=read(label+'캐릭터',()=>one(catalog.characters,b).id),artifact=read(label+'아티팩트',()=>one(catalog.artifacts,b)),legendMonster=read(label+'전설 몬스터링',()=>one(catalog.legends,b).id);
+    const slot={character,artifact:artifact?.id||null,legendMonster,equipment:{},ringMonsters:{},rings:{}};
+    const heading=within(b).filter(r=>normalize(r.text)==='몬스터링옵션').sort(order)[0];
+    const ringStart=vertical?heading?.bbox.y1:artifact?.bbox.y1;
+    const ringBounds={...b,y0:ringStart??b.y1};
+    const opts=matches(catalog.options,ringBounds).filter(r=>center(r).x>(vertical?width*.28:b.x0+(b.x1-b.x0)*.32));
+    const names=matches(catalog.monsters,ringBounds).sort(order);
+    if(vertical){
+     const ys=cluster(opts.map(r=>center(r).y),20*scale),xs=cluster(opts.map(r=>center(r).x),35*scale);
+     if(ys.length===4){for(let row=0;row<4;row++){
+      const rb={...ringBounds,y0:row?(ys[row-1]+ys[row])/2:ringBounds.y0,y1:row===3?b.y1:(ys[row]+ys[row+1])/2};
+      const id=read(label+(row?'몬스터링 '+row:'전설 몬스터링'),()=>one(row?catalog.monsters:catalog.legends,rb).id);
+      const types=Array(4).fill(null),used=new Set();
+      for(let col=0;col<4;col++)types[col]=read(label+(row?'몬스터링 '+row:'전설 몬스터링')+' 옵션 '+(col+1),()=>{if(xs.length!==4)error();const cell={...rb,x0:col?(xs[col-1]+xs[col])/2:width*.28,x1:col===3?b.x1:(xs[col]+xs[col+1])/2};const option=one(catalog.options,cell).id;if(used.has(option))error();used.add(option);return option;});
+      if(row){slot.ringMonsters['ring'+row]=id;slot.rings['ring'+row]=types;}else if(legendMonster&&(!id||id===legendMonster)){detail.slots[i].legend.types=types;}
+     }}else{warnings.push(label+'몬스터링·옵션 (행 위치 판독 실패)');}
+    }else if(names.length===3){
+     for(let row=0;row<3;row++){
+      const name=names[row],gap=Math.min(...names.slice(1).map((r,k)=>Math.abs(center(r).y-center(names[k]).y))),offset=gap*.22;
+      const group=opts.filter(r=>names.every(other=>Math.abs(center(r).y-(center(name).y-offset))<=Math.abs(center(r).y-(center(other).y-offset))));
+      slot.ringMonsters['ring'+(row+1)]=name.id;recognized++;
+      const types=Array(4).fill(null),xs=cluster(opts.map(r=>center(r).x),30*scale),dy=cluster(opts.map(r=>{const nearest=[...names].sort((a,b)=>Math.abs(center(a).y-center(r).y)-Math.abs(center(b).y-center(r).y))[0];return center(r).y-center(nearest).y;}),15*scale),used=new Set();
+      for(let k=0;k<4;k++)types[k]=read(label+'몬스터링 '+(row+1)+' 옵션 '+(k+1),()=>{if(xs.length!==2||dy.length!==2)error();const splitX=(xs[0]+xs[1])/2,splitY=center(name).y+(dy[0]+dy[1])/2,candidates=group.filter(r=>(center(r).x>=splitX)===(k%2===1)&&(center(r).y>=splitY)===(k>=2)),ids=[...new Set(candidates.map(r=>r.id))];if(ids.length!==1||used.has(ids[0]))error();used.add(ids[0]);return ids[0];});
+      slot.rings['ring'+(row+1)]=types;
+     }
+    }else warnings.push(label+'몬스터링·옵션 (행 위치 판독 실패)');
+    const gearBounds=vertical?{...b,y1:ringStart??b.y1}:{...b,y0:opts.length?Math.max(...opts.map(r=>r.bbox.y1)):b.y1};
+    keys.forEach((key,j)=>{
+     const box=read(label+gearNames[j]+' 위치',()=>{if(horizontal){const cell=(b.x1-b.x0)/4;return {...gearBounds,x0:b.x0+j*cell,x1:b.x0+(j+1)*cell};}const head=within(gearBounds).find(r=>normalize(r.text)===gearNames[j]);if(!head)error();return {x0:j%2?width*.5:width*.17,x1:j%2?width*.79:width*.5,y0:head.bbox.y0,y1:head.bbox.y0+155*scale};});
+     if(!box){slot.equipment[key]=null;return;}slot.equipment[key]=read(label+gearNames[j]+' 장비',()=>one(catalog.equipment[key],box).id);
+     if(detail)detail.slots[i].equipment[key]={atk:0,crit:0,critDmg:0};
+     if(detail)for(const [field,name,max]of [['atk','공격력',100000],['crit','치확 %',100],['critDmg','치피 %',100]])detail.slots[i].equipment[key][field]=read(label+gearNames[j]+' '+name,()=>numberBelow(name,box,0,max),0);
+    });
+    if(detail)for(const [key,name,min,max]of [['canto','캐릭터 돌파',0,6],['overlap','아티팩트 결합',1,5],['sanctuary','속성의 성소',0,50]])detail.slots[i][key]=read(label+name,()=>{const value=numberBelow(name,b,min,max);if(!Number.isInteger(value))error();return value;},detail.slots[i][key]);
+    return slot;
+   });
+   if(!slots.some(s=>s.character))error('캐릭터를 읽지 못해 에디터 이미지인지 확인할 수 없습니다. 기존 편성은 변경하지 않았습니다.');
+   if(detail){const ids=[...new Set(slots.map(s=>s.legendMonster).filter(Boolean))];for(const id of ids){const indices=slots.map((s,i)=>s.legendMonster===id?i:-1).filter(i=>i>=0),types=Array(4).fill(null);for(let k=0;k<4;k++){const values=[...new Set(indices.map(i=>detail.slots[i].legend.types[k]).filter(Boolean))];if(values.length===1)types[k]=values[0];else if(values.length>1)warnings.push('공통 전설 몬스터링 옵션 '+(k+1)+' (판독 불일치)');}detail.legendOptions[id]=types;for(const i of indices)detail.slots[i].legend.types=[...types];}}
+   return {app:'mongil-stardive-party',schema:1,partyTitle:'',contentId,remarks:'',slots,detailedStats:detail,recognitionWarnings:[...new Set(warnings)]};
+  }
   const header={x0:width*.66,x1:width,y0:0,y1:Math.min(anchors[0].bbox.y0*.45,width/1600*115)};
   let contentId=null;
   if(catalog.contents){const choices=matches(catalog.contents,header);const ids=[...new Set(choices.map(x=>x.id))];if(ids.length===1)contentId=ids[0];else if(ids.length||!within(header).some(r=>['컨텐츠설정','콘텐츠설정'].includes(normalize(r.text))))error('콘텐츠를 확실히 읽지 못했습니다. 기존 편성은 변경하지 않았습니다.');}
@@ -120,6 +171,22 @@
   }
   return extracted;
  }
+ function numericGlyphCount(pixels,width,height,minArea){
+  const seen=new Uint8Array(width*height),queue=new Int32Array(width*height);let count=0;
+  for(let start=0;start<seen.length;start++){if(seen[start]||pixels[start*4]!==0)continue;let tail=1,head=0;queue[0]=start;seen[start]=1;while(head<tail){const at=queue[head++],x=at%width,y=Math.floor(at/width);for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const xx=x+dx,yy=y+dy;if(xx<0||xx>=width||yy<0||yy>=height)continue;const next=yy*width+xx;if(!seen[next]&&pixels[next*4]===0){seen[next]=1;queue[tail++]=next;}}}if(tail>=minArea)count++;
+  }return count;
+ }
+ async function refineNumbers(canvas,data,worker){
+  const scale=canvas.width/1600,labels=['공격력','치확%','치피%','캐릭터돌파','아티팩트결합','속성의성소'],heads=[];
+  for(const r of data.records)if(r.confidence>=85&&labels.includes(normalize(r.text))&&center(r).x>canvas.width*.17&&center(r).x<canvas.width*.79&&!heads.some(h=>Math.abs(center(h).x-center(r).x)<15*scale&&Math.abs(center(h).y-center(r).y)<15*scale))heads.push(r);
+  await worker.setParameters({tessedit_pageseg_mode:'7',tessedit_char_whitelist:'0123456789.'});
+  data.numericChecks=[];data.numericCheckMode=true;
+  try{for(const head of heads){data.numericChecks.push(center(head));const x=Math.round(head.bbox.x0-2*scale),y=Math.round(head.bbox.y1+20*scale),w=Math.round(90*scale),h=Math.round(34*scale),crop=document.createElement('canvas');crop.width=w*3;crop.height=h*3;const ctx=crop.getContext('2d',{willReadFrequently:true}),results=[];
+   try{for(const threshold of [110,160]){await worker.setParameters({tessedit_pageseg_mode:threshold===110?'7':'8'});ctx.drawImage(canvas,x,y,w,h,0,0,crop.width,crop.height);const pixels=ctx.getImageData(0,0,crop.width,crop.height);for(let i=0;i<pixels.data.length;i+=4){const v=Math.min(pixels.data[i],pixels.data[i+1],pixels.data[i+2])>threshold?0:255;pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=v;}ctx.putImageData(pixels,0,0);const glyphs=numericGlyphCount(pixels.data,crop.width,crop.height,Math.max(6,Math.round(6*scale*scale)));const found=records((await timed(worker.recognize(crop,{}, {text:true,blocks:true}),30000)).data).words.filter(r=>r.confidence>=85&&/^\d+(?:\.\d+)?$/.test(r.text.trim()));results.push(found.length===1&&found[0].text.trim().length===glyphs?found[0]:null);}
+    if(results.every(Boolean)&&results[0].text===results[1].text){const r=results[0];data.words.push({...r,numericCell:true,bbox:{x0:x+r.bbox.x0/3,x1:x+r.bbox.x1/3,y0:y+r.bbox.y0/3,y1:y+r.bbox.y1/3}});}
+   }finally{crop.width=0;crop.height=0;}}
+  }finally{await worker.setParameters({tessedit_pageseg_mode:'11',tessedit_char_whitelist:''});}return data;
+ }
  async function refineRingCaptions(canvas,data,worker,catalog){
   const scale=canvas.width/1600,rows=[];for(const r of data.records){const p=center(r);if(r.confidence<85||p.x<canvas.width*.28||p.x>canvas.width*.36||!catalog.options.some(o=>normalize(o.name)===normalize(r.text)))continue;if(!rows.some(y=>Math.abs(y-p.y)<15*scale))rows.push(p.y);}
   await worker.setParameters({tessedit_pageseg_mode:'6'});
@@ -158,8 +225,8 @@
    bitmap=await createImageBitmap(file);canvas=document.createElement('canvas');canvas.width=targetWidth;canvas.height=targetHeight;const ctx=canvas.getContext('2d',originalHeight>originalWidth*1.5?{}:{willReadFrequently:true});ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);bitmap.close();bitmap=null;
    const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;let dark=0,total=0;for(let i=0;i<pixels.length;i+=160){total++;if(Math.max(pixels[i],pixels[i+1],pixels[i+2])<95)dark++;}if(dark/total<.5)error();
    await timed(loadOcr(),30000);initialization=Tesseract.createWorker('kor+eng',1,{logger:event=>{if(event.status==='recognizing text')progress('문자와 표를 읽고 있습니다… '+Math.round(event.progress*100)+'%');else progress('인식 파일을 준비하고 있습니다…');}});worker=await timed(initialization,120000);await worker.setParameters({tessedit_pageseg_mode:'11'});
-   const result=await readCanvas(canvas,worker);if(canvas.height>canvas.width*1.5){await refineDetail(canvas,result,worker);await refineFoods(canvas,result,worker);await refineRingCaptions(canvas,result,worker,catalog);}progress('에디터 형식과 모든 항목을 확인하고 있습니다…');const extracted=await addVisualIcons(canvas,result,catalog);return parse(extracted,canvas.width,canvas.height,catalog);
+   const result=await readCanvas(canvas,worker);if(canvas.height>canvas.width*1.5){await refineDetail(canvas,result,worker);await refineFoods(canvas,result,worker);await refineRingCaptions(canvas,result,worker,catalog);await refineNumbers(canvas,result,worker);}progress('에디터 형식과 모든 항목을 확인하고 있습니다…');const extracted=await addVisualIcons(canvas,result,catalog);return parse(extracted,canvas.width,canvas.height,catalog);
   }finally{bitmap?.close();if(worker)await worker.terminate();else if(initialization)initialization.then(late=>late.terminate(),()=>{});if(canvas){canvas.width=0;canvas.height=0;}}
  }
- window.MongilImageReader=Object.freeze({recognize,parse,normalize,records,refineRingCaptions,refineDetail,refineFoods,readCanvas,matchIcons:addVisualIcons});
+ window.MongilImageReader=Object.freeze({recognize,parse,normalize,records,numericGlyphCount,refineRingCaptions,refineDetail,refineFoods,readCanvas,matchIcons:addVisualIcons});
 })();
