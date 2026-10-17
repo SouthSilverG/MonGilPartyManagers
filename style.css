@@ -1299,7 +1299,7 @@ body {
 @media(max-width:720px){
  .app-sidebar{flex-direction:column;align-items:stretch;gap:0;padding:8px 10px}
  .app-sidebar__brand{display:none}
- .app-sidebar__nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+ .app-sidebar__nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
  .app-sidebar__item{min-width:0;flex-direction:column;justify-content:center;gap:4px;padding:7px 3px;text-align:center;font-size:11px;line-height:1.35;word-break:keep-all}
  .app-sidebar__icon{font-size:18px;width:auto}
 }

@@ -4,7 +4,7 @@
   const optOutKey='mongil-analytics-opt-out';
   let active=false;
   const events=new Set(['page_view']);
-  function editor(){return /\/recipes(?:\/|$)/i.test(location.pathname)?'recipes':/\/calculator(?:\/|$)/i.test(location.pathname)?'calculator':/\/Statcal(?:\/|$)/i.test(location.pathname)?'detail':'party';}
+  function editor(){return /\/sanctuary(?:\/|$)/i.test(location.pathname)?'sanctuary':/\/recipes(?:\/|$)/i.test(location.pathname)?'recipes':/\/calculator(?:\/|$)/i.test(location.pathname)?'calculator':/\/Statcal(?:\/|$)/i.test(location.pathname)?'detail':'party';}
   function optedOut(){try{return localStorage.getItem(optOutKey)==='1';}catch(_){return false;}}
   const browserOptOut=()=>navigator.globalPrivacyControl===true||navigator.doNotTrack==='1';
   function track(name){
