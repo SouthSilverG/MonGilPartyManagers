@@ -1306,3 +1306,7 @@ body {
 
 
 .history-modal__footer{flex-wrap:wrap}.history-modal__footer .history-modal__hint{flex:1 1 240px}
+
+/* Separate manager navigation from the tools within this site. */
+.app-sidebar__item.manager-switch{margin-top:16px;border-top:1px solid var(--border-strong);padding-top:14px;color:#c3baff}
+@media(max-width:720px){.app-sidebar__item.manager-switch{margin-top:0;padding-top:8px;border-top-color:transparent;border-left:1px solid var(--border-strong)}}
