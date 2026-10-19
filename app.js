@@ -483,6 +483,15 @@ function renderModalPage() {
     el.className =
       "modal__item" + (selectedIds && selectedIds.has(item.id) ? " modal__item--selected" : "");
 
+    if (item.recommended) {
+      el.classList.add("modal__item--recommended");
+      const badge = document.createElement("span");
+      badge.className = "artifact-recommendation";
+      badge.textContent = "추천";
+      el.appendChild(badge);
+      el.title = "선택한 캐릭터의 추천 아티팩트";
+    }
+
     if (item.image) {
       const img = document.createElement("img");
       // 선택창을 열 때 목록에 있는 이미지를 한꺼번에 다 받지 않고,
@@ -569,7 +578,7 @@ slotsEl.addEventListener("click", (e) => {
   } else if (action === "artifact") {
     openModal({
       title: "아티팩트 선택",
-      items: ARTIFACTS,
+      items: artifactPickerItems(slot.character),
       getSelectedIds: () => new Set(slot.artifact ? [slot.artifact] : []),
       onSelect: (id) => {
         slot.artifact = id;
