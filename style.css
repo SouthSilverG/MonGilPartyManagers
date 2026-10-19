@@ -1310,3 +1310,6 @@ body {
 /* Separate manager navigation from the tools within this site. */
 .app-sidebar__item.manager-switch{margin-top:16px;border-top:1px solid var(--border-strong);padding-top:14px;color:#c3baff}
 @media(max-width:720px){.app-sidebar__item.manager-switch{margin-top:0;padding-top:8px;border-top-color:transparent;border-left:1px solid var(--border-strong)}}
+
+/* 4-star equipment: keep the original transparent icon over a purple rarity plate. */
+.equip-slot img.equipment-icon--grade4,.modal__item img.equipment-icon--grade4{background:linear-gradient(135deg,#372a49 0%,#66507e 58%,#8960ad 100%);border:1px solid #a179ce;box-shadow:inset 0 0 0 1px #c49ce833;object-fit:contain}

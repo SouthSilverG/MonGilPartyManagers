@@ -366,6 +366,7 @@ const EQUIPMENT = {
      { id: "hats_blooming_peach", name: "만개한 도화", image: "assets/equipment/top_blooming_peach.png" },
   ],
   top: [
+    { id: "top_silent_dismantler", name: "말 없는 해체자", image: "assets/equipment/top_silent_dismantler.png", grade: 4 },
     { id: "top_gourmand_realm", name: "식신의 경지", image: "assets/equipment/top_gourmand_realm.png" },
     { id: "top_vanguard_commander", name: "개전의 선봉대장", image: "assets/equipment/top_vanguard_commander.png" },
     { id: "top_towering_might", name: "군림하는 태산의 위엄", image: "assets/equipment/top_towering_might.png" },
@@ -384,6 +385,7 @@ const EQUIPMENT = {
      { id: "top_icedes", name: "무자비한 파괴자", image: "assets/equipment/top_icedes.png" },
   ],
   gloves: [
+    { id: "gloves_silent_dismantler", name: "말 없는 해체자", image: "assets/equipment/gloves_silent_dismantler.png", grade: 4 },
     { id: "gloves_eternal_frost_heart", name: "영원한 서리의 심장", image: "assets/equipment/gloves_eternal_frost_heart.png" },
     { id: "gloves_gourmand_realm", name: "식신의 경지", image: "assets/equipment/gloves_gourmand_realm.png" },
     { id: "gloves_towering_might", name: "군림하는 태산의 위엄", image: "assets/equipment/gloves_towering_might.png" },

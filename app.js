@@ -372,6 +372,7 @@ function renderSlot(slot, slotIndex) {
       img.loading = "lazy";
       img.src = imgOrPlaceholder(item.image);
       img.alt = item.name;
+      if (item.grade === 4) { img.classList.add("equipment-icon--grade4"); img.alt += " (4성)"; }
       cell.appendChild(img);
 
       const valueEl = document.createElement("div");
@@ -489,6 +490,7 @@ function renderModalPage() {
       img.loading = "lazy";
       img.src = imgOrPlaceholder(item.image);
       img.alt = item.name;
+      if (item.grade === 4) { img.classList.add("equipment-icon--grade4"); img.alt += " (4성)"; }
       el.appendChild(img);
     }
 
@@ -1364,6 +1366,7 @@ function renderContentModalGrid() {
       img.loading = "lazy";
       img.src = item.image;
       img.alt = item.name;
+      if (item.grade === 4) { img.classList.add("equipment-icon--grade4"); img.alt += " (4성)"; }
       card.appendChild(img);
     } else {
       card.classList.add("content-item--text-only");
