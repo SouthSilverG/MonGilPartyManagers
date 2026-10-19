@@ -1312,10 +1312,10 @@ body {
 @media(max-width:720px){.app-sidebar__item.manager-switch{margin-top:0;padding-top:8px;border-top-color:transparent;border-left:1px solid var(--border-strong)}}
 
 /* 4-star equipment: keep the original transparent icon over a purple rarity plate. */
-.equip-slot img.equipment-icon--grade4,.modal__item img.equipment-icon--grade4{background:linear-gradient(135deg,#372a49 0%,#66507e 58%,#8960ad 100%);border:1px solid #a179ce;box-shadow:inset 0 0 0 1px #c49ce833;object-fit:contain}
+.equip-slot img.equipment-icon--grade4,.modal__item img.equipment-icon--grade4{background:none;border:1px solid #a179ce;box-shadow:inset 0 0 0 1px #c49ce833;object-fit:contain}
 
 /* Signature artifact recommendation, distinct from the green selected state. */
 .modal__item--recommended{position:relative;border:2px solid #d7ad59;background:linear-gradient(145deg,#3a3020,#201c2c);box-shadow:0 0 0 1px #f0c46a26;padding-top:28px}.modal__item--recommended:hover{border-color:#ffe0a0;background:#3b3024}.modal__item--recommended.modal__item--selected{border-color:#e3be70;box-shadow:inset 0 0 0 2px var(--green),0 0 0 1px #f0c46a26}.artifact-recommendation{position:absolute;top:6px;left:7px;padding:2px 7px;border-radius:4px;background:#e4bc6b;color:#211a0e;font-size:11px;font-weight:800;line-height:1.5}
 
 /* Original 5-star equipment icons over orange rarity plates. */
-.equip-slot img.equipment-icon--grade5,.modal__item img.equipment-icon--grade5{background:linear-gradient(135deg,#553018 0%,#a45c27 58%,#d9913a 100%);border:1px solid #d9a45a;box-shadow:inset 0 0 0 1px #ffd49033;object-fit:contain}
+.equip-slot img.equipment-icon--grade5,.modal__item img.equipment-icon--grade5{background:none;border:1px solid #d9a45a;box-shadow:inset 0 0 0 1px #ffd49033;object-fit:contain}
