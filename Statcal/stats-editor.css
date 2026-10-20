@@ -104,3 +104,9 @@
 }
 .detail-export .detail-character{display:grid!important}
 .detail-export .detail-results,.detail-export .detail-controls{grid-row:auto}
+
+/* Enemy notes are prose, not the two-column numeric source list. */
+.detail-results .detail-notes li{display:block;padding:10px 0;border-bottom:1px solid var(--border);line-height:1.55;overflow-wrap:anywhere}
+.detail-results .detail-notes li b{display:block;color:var(--text);font-size:13px}
+.detail-results .detail-notes p{margin:6px 0;font-size:12px;line-height:1.55;color:var(--text-muted)}
+.detail-results .detail-notes small{display:block;font-size:11px;line-height:1.5;color:var(--text-muted)}

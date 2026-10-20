@@ -1,11 +1,11 @@
 /* Pure calculation core. Source values use 100 = 1 percentage point. */
 (function(root){
  'use strict';
- const fields={70:'ultimateGauge',112:'brawler',114:'destroyer',116:'slayer',118:'supporter',5:'roleFlat',111:'brawlerFlat',113:'destroyerFlat',115:'slayerFlat',117:'supporterFlat',1:'atkFlat',2:'defFlat',3:'hpFlat',85:'atk',86:'def',96:'hp',4:'crit',6:'critDmg',8:'penetration',97:'suppress',108:'groggy',73:'weakness',102:'earthRes',109:'normal',110:'boss',78:'support',107:'brawl',11:'fire',13:'ice',15:'lightning',17:'wind',19:'earth',29:'physical',76:'cooldown'};
+ const fields={70:'ultimateGauge',112:'brawler',114:'destroyer',116:'slayer',118:'supporter',5:'roleFlat',111:'brawlerFlat',113:'destroyerFlat',115:'slayerFlat',117:'supporterFlat',1:'atkFlat',2:'defFlat',3:'hpFlat',85:'atk',86:'def',96:'hp',4:'crit',6:'critDmg',8:'penetration',97:'suppress',108:'groggy',73:'weakness',98:'fireRes',99:'iceRes',100:'windRes',101:'lightningRes',102:'earthRes',103:'physicalRes',104:'waterRes',105:'darkRes',77:'tagCooldown',109:'normal',110:'boss',78:'support',107:'brawl',11:'fire',13:'ice',15:'lightning',17:'wind',19:'earth',29:'physical',76:'cooldown'};
  const positionWeights=[0,2083,1889,1724,1588,1334,1250,1177,1111,1053,935,874,819,772,730,660,629,600,574,551,510,485,462,442,423,395,380,366,353,341,322,282,273,264,256,244,237,230,224,218,209,191,186,181,176,170,166,162,158,154,149,139,136,133,130,126,123,121,118,116,113,107,104,102,100,98,96,94,92,91,89,85,83,81,80,78,77,76,74,73,72,69,68,67,65,64,63,62,61,60,59,57,56,56,55,54,53,52,51,51,49];
  const roleConversions={1:{from:'brawlerFlat',to:'brawl'},2:{from:'slayerFlat',to:'suppress'},3:{from:'destroyerFlat',to:'groggy'},4:{from:'supporterFlat',to:'support'}};
  const elements={1:'physical',2:'fire',3:'ice',4:'lightning',5:'wind',6:'earth'};
- const names={specialAtk:'특수 스킬 한정 공격력 증가',basicDamage:'기본 공격 피해',specialDamage:'특수 스킬 피해',ultimateDamage:'궁극 스킬 피해',tagDamage:'교체 스킬 피해',damageReduction:'받는 피해 감소',ultimateGauge:'궁극 스킬 충전율',roleFlat:'역할 특화',brawlerFlat:'난투',destroyerFlat:'파괴',slayerFlat:'암살',supporterFlat:'지원',atk:'공격력',def:'방어력',hp:'체력',crit:'치명타 확률',critDmg:'치명타 피해',penetration:'관통률',suppress:'제압 피해',groggy:'무력화 피해',weakness:'약점 속성 피해',boss:'보스 몬스터 피해',support:'지원 피해',brawl:'난전 피해',fire:'불 속성 피해',ice:'얼음 속성 피해',lightning:'번개 속성 피해',wind:'바람 속성 피해',earth:'땅 속성 피해',physical:'물리 속성 피해'};
+ const names={normal:'일반 몬스터 피해',cooldown:'특수 스킬 재사용 대기시간 감소',tagCooldown:'캐릭터 교체 재사용 대기시간 감소',physicalRes:'물리 속성 저항',fireRes:'불 속성 저항',iceRes:'얼음 속성 저항',windRes:'바람 속성 저항',lightningRes:'번개 속성 저항',earthRes:'땅 속성 저항',waterRes:'물 속성 저항',darkRes:'암흑 속성 저항',specialAtk:'특수 스킬 한정 공격력 증가',basicDamage:'기본 공격 피해',specialDamage:'특수 스킬 피해',ultimateDamage:'궁극 스킬 피해',tagDamage:'교체 스킬 피해',damageReduction:'받는 피해 감소',ultimateGauge:'궁극 스킬 충전율',roleFlat:'역할 특화',brawlerFlat:'난투',destroyerFlat:'파괴',slayerFlat:'암살',supporterFlat:'지원',atk:'공격력',def:'방어력',hp:'체력',crit:'치명타 확률',critDmg:'치명타 피해',penetration:'관통률',suppress:'제압 피해',groggy:'무력화 피해',weakness:'약점 속성 피해',boss:'보스 몬스터 피해',support:'지원 피해',brawl:'난전 피해',fire:'불 속성 피해',ice:'얼음 속성 피해',lightning:'번개 속성 피해',wind:'바람 속성 피해',earth:'땅 속성 피해',physical:'물리 속성 피해'};
  const plain=s=>String(s||'').replace(/<[^>]*>/g,'').replace(/\\n/g,'\n');
  function make(data){
   const T=data.tables,L=data.local,tableRows=new Map(),rows=n=>{if(!tableRows.has(n))tableRows.set(n,Object.values(T[n]||{}));return tableRows.get(n);},loc=k=>plain(L[k]||''),by=(n,f,v)=>rows(n).filter(r=>r[f]===v);
@@ -134,8 +134,18 @@
     if(cid===101801){replace([101806,101816],q.canto>=6?101816:101806,'가비 · 목상 / 팀 땅 피해',{team:true});replace([101804,101817],q.canto>=6?101817:101804,'가비 · 목상 / 팀 방어력',{team:true});}
     if(cid===103101){replace([103107,103111],q.canto>=2?103111:103107,'오필리아 · 자안의 마녀');replace([103114,103115],q.canto>=1?103115:103114,'오필리아 · 특수 스킬 / 지원 피해');}
     if(cid===103501){replace([103503,103518],q.canto>=1?103518:103503,'엔젤 · 지원 후 교체 / 불 피해',{team:q.canto>=4});verified.push([10135,'엔젤 · 특수 스킬 / 피해 감소',{conditional:true}]);}
+    if(cid===103701)verified.push([103731,'브리셸 · 기본 공격 사용 중 / 제압 피해→모든 속성 저항',{conditional:true}]);
     if(cid===103701){replace([103701,103706],q.canto>=6?103706:103701,'브리셸 · 관심 과부하');if(q.canto>=6)verified.push([103722,'브리셸 · 돌파 6 / 제압 피해 환산',{conditional:true}]);}
     if(cid===103901){replace([103902,103919],q.canto>=6?103919:103902,'서머 베르나 · 불씨 / 최대 중첩');verified.push([103901,'서머 베르나 · 불타는 의지',{conditional:true}]);if(q.canto>=2)verified.push([103918,'서머 베르나 · 돌파 2 / 지원 피해',{conditional:true}]);}
+    // Verified C2 description references missing from the action-root graph.
+    if(cid===100101&&q.canto>=2)verified.push([100104,'베르나 · 돌파 2 / 고유 특성 활성 중 치확',{conditional:true}]);
+    if(cid===100201&&q.canto>=2)verified.push([100216,'클라우드 · 돌파 2 / 얼음 결정 획득 구간 해제 (12초)',{conditional:true}]);
+    if(cid===103001&&q.canto>=2)verified.push([103007,'엘리 · 돌파 2 / 베개 팡! 후 팀 땅 피해 (5초)',{conditional:true,team:true}]);
+    // Bonney's weapon-change passive and C2 horn buff are applied by character actions.
+    if(cid===103401){
+     verified.push([103409,'보니 · 고유 특성 / 악기 변경 후 5초 치확',{conditional:true}]);
+     if(q.canto>=2)verified.push([103429,'보니 · 돌파 2 / 호른 연주 중 팀 치피 (5초)',{conditional:true,team:true}]);
+    }
     if(cid===103301)verified.push([103319,'에스데 · 연막 / 바람 팀원 받는 피해 감소',{conditional:true,team:true,targetElement:5}]);
     if(cid===103801)verified.push([103818,'메이벨 · 스킬 / 받는 피해 감소',{conditional:true}]);
     // The skill action applies this team buff in the character asset, not ACTION_ABILITY_GROUP_ID.
@@ -166,6 +176,25 @@
     for(const [id,r] of Object.entries(T.CHARACTER_CANTO))if(r.CHARACTER_ID===cid&&r.CANTO_LEVEL<=q.canto)for(const g of r.ABILITY_GROUP_ADD||[])if(g&&!verified.some(v=>v[0]===g))push(g,'canto-'+r.CANTO_LEVEL+'-'+g,'돌파 '+r.CANTO_LEVEL,{conditional:true});
    });return out;
   }
+  function stackInfo(gid,canto=0,level=1){
+   const rule=data.effectRules?.[gid]||{},e=compile(gid,canto,level);
+   return {maxStack:e.maxStack,duration:(rule.TIME||0)/1000,priorityGroup:rule.PRIORITY_GROUP_ID||0,priority:rule.PRIORITY||0,overlapCode:rule.OVERLAP_TYPE??null};
+  }
+  function enemyNotes(party,detail){
+   const notes=[];
+   party.slots.forEach((slot,owner)=>{if(!character(slot.character))return;const q=detail.slots[owner];
+    const refs=[...(data.enemyReferences?.[slot.character]||[])];
+    // Include enemy nodes already reached from the selected equipment/skill graph too.
+    for(const e of effectList({slots:[slot]}, {slots:[q]}))if(data.effectRules?.[e.gid]?.BUFF===2&&!refs.some(r=>r.gid===e.gid))refs.push({gid:e.gid,minCanto:0,origins:[e.label]});
+    for(const ref of refs){if(ref.minCanto>q.canto)continue;const e=compile(ref.gid,q.canto,q.skillLevel);if(!e.text||/\{\d+\}/.test(e.text))continue;
+     notes.push({owner,gid:ref.gid,title:e.title,text:e.text,origins:ref.origins,kind:'enemy',...stackInfo(ref.gid,q.canto,q.skillLevel)});
+    }
+   });return notes;
+  }
+  function stackingWarnings(effects){
+   const groups=new Map();for(const e of effects.filter(e=>e.applied)){const owners=groups.get(e.gid)||new Set();owners.add(e.owner);groups.set(e.gid,owners);}
+   return [...groups].filter(([,owners])=>owners.size>1).map(([gid,owners])=>({gid,owners:[...owners],text:'동일 효과의 여러 시전자 중첩은 미확인입니다. 기존 합산 가정이며 실게임 결과와 다를 수 있습니다.'}));
+  }
   function equipmentPrimary(part,id){const item=data.equipmentById?.[id];return item?(item.part===part?item:null):data.equipmentMax?.[part]||null;}
   function calculate(party,raw){const detail=shared(party,raw),effects=effectList(party,detail);let logs=[],missing=[];
    const result=party.slots.map((s,i)=>{const c=character(s.character),q=detail.slots[i],v={atkFlat:0,defFlat:0,hpFlat:0,atk:0,def:0,hp:0,crit:T.CHARACTER_CONFIG.BASE_CRITICAL_RATE.VALUE/100,critDmg:T.CHARACTER_CONFIG.BASE_CRITICAL_DMG_RATE.VALUE/100,weakness:T.CHARACTER_CONFIG.BASE_WEAKNESS_ATK.VALUE/100,support:T.CHARACTER_CONFIG.BASE_SUPPORT_DMG.VALUE/100,ultimateGauge:T.CHARACTER_CONFIG.GET_ULTIMATE_GAUGE_RATE.VALUE/100};
@@ -182,7 +211,7 @@
     return {selected:true,values:v,element:c.ELEMENTAL_TYPE,warnings,logs:[]};
    });
    let conversions=[];
-   for(const e of effects){let settings=detail.slots[e.owner].effects[e.key],active=detail.autoEffects?!e.unsupported:(settings?settings.on:!e.conditional&&!e.scopeUnverified);e.applied=false;e.appliedTo=[];e.appliedStacks=detail.autoEffects?e.maxStack:Math.min(e.maxStack,settings?.stacks||1);if(e.conditionCount&&party.slots.filter(s=>character(s.character)?.ELEMENTAL_TYPE===e.conditionCount.element).length<e.conditionCount.count)active=false;if(!active)continue;if(detail.autoEffects&&e.exclusiveGroup&&effects.some(other=>other!==e&&other.exclusiveGroup===e.exclusiveGroup&&((other.deltas.find(d=>d.key==='atk')?.value||0)>(e.deltas.find(d=>d.key==='atk')?.value||0)||((other.deltas.find(d=>d.key==='atk')?.value||0)===(e.deltas.find(d=>d.key==='atk')?.value||0)&&other.owner<e.owner))))continue;if(!detail.autoEffects&&e.scopeUnverified&&!settings?.scope){missing.push(e.label+' 적용 대상 미확인');continue;}const team=e.team||(!detail.autoEffects&&settings?.scope==='team');const targets=(team?[0,1,2]:[e.owner]).filter(i=>result[i].selected&&(!e.targetElement||e.targetElement===result[i].element)&&(!e.excludeElement||e.excludeElement!==result[i].element)&&(!e.targetRange||character(party.slots[i].character)?.RANGE_TYPE===e.targetRange));e.appliedTo=targets;e.applied=targets.length>0;
+   for(const e of effects){let settings=detail.slots[e.owner].effects[e.key],active=detail.autoEffects?!e.unsupported:(settings?settings.on:!e.conditional&&!e.scopeUnverified);e.applied=false;e.appliedTo=[];e.appliedStacks=detail.autoEffects?e.maxStack:Math.min(e.maxStack,settings?.stacks||1);if(e.conditionCount&&party.slots.filter(s=>character(s.character)?.ELEMENTAL_TYPE===e.conditionCount.element).length<e.conditionCount.count)active=false;if(data.effectRules?.[e.gid]?.BUFF===2){e.enemy=true;continue;}if(!active)continue;if(detail.autoEffects&&e.exclusiveGroup&&effects.some(other=>other!==e&&other.exclusiveGroup===e.exclusiveGroup&&((other.deltas.find(d=>d.key==='atk')?.value||0)>(e.deltas.find(d=>d.key==='atk')?.value||0)||((other.deltas.find(d=>d.key==='atk')?.value||0)===(e.deltas.find(d=>d.key==='atk')?.value||0)&&other.owner<e.owner))))continue;if(!detail.autoEffects&&e.scopeUnverified&&!settings?.scope){missing.push(e.label+' 적용 대상 미확인');continue;}const team=e.team||(!detail.autoEffects&&settings?.scope==='team');const targets=(team?[0,1,2]:[e.owner]).filter(i=>result[i].selected&&(!e.targetElement||e.targetElement===result[i].element)&&(!e.excludeElement||e.excludeElement!==result[i].element)&&(!e.targetRange||character(party.slots[i].character)?.RANGE_TYPE===e.targetRange));e.appliedTo=targets;e.applied=targets.length>0;
     for(const i of targets){if(!result[i].selected||(e.targetElement&&e.targetElement!==result[i].element))continue;let stacks=e.appliedStacks;for(const d of e.deltas){const ds=detail.autoEffects?(d.stacks||stacks):Math.min(d.stacks||stacks,stacks);result[i].values[d.key]=(result[i].values[d.key]||0)+d.value*ds;logs.push({slot:i,key:d.key,value:d.value*ds,label:e.label});}for(const conv of e.conversions)conversions.push({slot:i,...conv,owner:conv.sourceTarget?i:e.owner,label:e.label});if(e.unsupported)result[i].warnings.push('계산 미지원: '+e.title);}
    }
    // User-provided level weights: only the character's own role converts to damage.
@@ -190,10 +219,10 @@
    // Resolve dependencies once: role conversion precedes buffs derived from its result.
    const pending=[...conversions],ordered=[];while(pending.length){const idx=pending.findIndex(c=>!pending.some(other=>other!==c&&other.slot===c.owner&&other.to===c.from));if(idx<0){missing.push('순환 스탯 전환: '+pending.map(c=>c.label).join(', '));break;}ordered.push(pending.splice(idx,1)[0]);}
    for(const c of ordered){const source=result[c.owner].values;let amount=source[c.from]||0;if(c.from.endsWith('Flat'))amount*=1+(source[c.from.slice(0,-4)]||0)/100;let bonus=Math.min(Math.max(0,Math.max(0,amount-(c.offset||0))*c.ratio),c.cap>0?c.cap:Infinity);if(c.truncatePercent&&!c.to.endsWith('Flat'))bonus=Math.floor((bonus+1e-9)*100)/100;result[c.slot].values[c.to]=(result[c.slot].values[c.to]||0)+bonus;logs.push({slot:c.slot,key:c.to,value:bonus,label:c.label+' · 전환'});}
-   for(let i=0;i<3;i++){let r=result[i],v=r.values;r.atk=Math.floor(v.atkFlat*(1+v.atk/100));r.def=Math.floor(v.defFlat*(1+v.def/100));r.hp=Math.floor(v.hpFlat*(1+v.hp/100));r.rawValues={...v};r.caps={};r.excess={};for(const [key,config] of Object.entries({crit:'MAX_CRITICAL_RATE',critDmg:'MAX_CRITICAL_DMG_RATE',suppress:'MAX_FORCE',groggy:'MAX_STAGGER',brawl:'MAX_TUSSLE',support:'MAX_SUPPORT_DMG',weakness:'MAX_WEAKNESS_ATK',damageReduction:'MAX_DMG_REDUCTION',cooldown:'MAX_SKILL_COOLDOWN'})){const cap=T.CHARACTER_CONFIG[config]?.VALUE/100;if(Number.isFinite(cap)){r.caps[key]=cap;r.excess[key]=Math.max(0,(v[key]||0)-cap);v[key]=Math.min(cap,v[key]||0);}}r.logs=logs.filter(l=>l.slot===i);}
-   return {slots:result,effects,missing,detail};
+   for(let i=0;i<3;i++){let r=result[i],v=r.values;r.atk=Math.floor(v.atkFlat*(1+v.atk/100));r.def=Math.floor(v.defFlat*(1+v.def/100));r.hp=Math.floor(v.hpFlat*(1+v.hp/100));r.roleSpecialization=Object.entries(party.slots[i].equipment||{}).reduce((sum,[part,id])=>{const primary=equipmentPrimary(part,id);return sum+(primary?.type===5?primary.value:0);},0);r.rawValues={...v};r.caps={};r.excess={};for(const [key,config] of Object.entries({crit:'MAX_CRITICAL_RATE',critDmg:'MAX_CRITICAL_DMG_RATE',suppress:'MAX_FORCE',groggy:'MAX_STAGGER',brawl:'MAX_TUSSLE',support:'MAX_SUPPORT_DMG',weakness:'MAX_WEAKNESS_ATK',damageReduction:'MAX_DMG_REDUCTION',cooldown:'MAX_SKILL_COOLDOWN'})){const cap=T.CHARACTER_CONFIG[config]?.VALUE/100;if(Number.isFinite(cap)){r.caps[key]=cap;r.excess[key]=Math.max(0,(v[key]||0)-cap);v[key]=Math.min(cap,v[key]||0);}}r.logs=logs.filter(l=>l.slot===i);}
+   return {slots:result,effects,missing,detail,enemyNotes:enemyNotes(party,detail),stackingWarnings:stackingWarnings(effects)};
   }
-  return {T,L,loc,rows,by,compile,description,defaults,sanitize,shared,parameters,linkedEffects,sanctuaryEffect,character,card,optionKey,primeOption,effectList,calculate,equipmentPrimary,artifactEffects,positionWeights,roleConversions,fields,elements,names};
+  return {stackInfo,enemyNotes,T,L,loc,rows,by,compile,description,defaults,sanitize,shared,parameters,linkedEffects,sanctuaryEffect,character,card,optionKey,primeOption,effectList,calculate,equipmentPrimary,artifactEffects,positionWeights,roleConversions,fields,elements,names};
  }
  root.MongilStatsEngine={make};if(typeof module!=='undefined')module.exports=root.MongilStatsEngine;
 })(typeof window!=='undefined'?window:globalThis);
