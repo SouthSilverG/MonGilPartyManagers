@@ -1001,6 +1001,7 @@ document.getElementById("btnSavePng").addEventListener("click", async () => {
           const board=doc.getElementById('captureArea');board.classList.add('detail-export');
           board.style.cssText='width:1600px;max-width:none;margin:0;padding:24px;box-sizing:border-box';
           doc.querySelector('.detail-character-tabs')?.remove();doc.querySelector('.detail-formula')?.remove();
+          // Always export only the ten core rows, regardless of live disclosure state.
           doc.querySelectorAll('.detail-results details').forEach(el=>el.remove());
           doc.getElementById('detailEffects')?.remove();
           if(!remarksHasText)doc.querySelector('.remarks')?.remove();
