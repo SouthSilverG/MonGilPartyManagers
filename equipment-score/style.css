@@ -4,3 +4,7 @@
 .threshold-blue{color:#64b8ff;--swatch:#64b8ff}.threshold-green{color:#65d59a;--swatch:#65d59a}.threshold-yellow{color:#efcd67;--swatch:#efcd67}.threshold-red{color:#ee8888;--swatch:#ee8888}.guide i{display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--swatch);margin-right:7px}.thresholds{margin-top:16px}.thresholds input{color:#e4e9f3}
 
 .gray{--tone:#7d8797}.threshold-gray{color:#7d8797;--swatch:#7d8797}
+
+.value-input{display:flex;align-items:center;gap:5px}.value-input input{width:105px;min-width:0;text-align:right;padding:5px 7px}.value-input input:disabled{opacity:.4}.stat{align-items:center}.value-input input:invalid{border-color:#ee8888}
+
+.gear-head>div{min-width:0;flex:1}.gear-head select{width:100%;padding:6px 4px;font-size:13px}.character-select{font-size:20px;font-weight:700;max-width:240px}.gear-head{align-items:center}
