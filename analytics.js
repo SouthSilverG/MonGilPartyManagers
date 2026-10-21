@@ -3,7 +3,7 @@
   const config=window.MONGIL_ANALYTICS_CONFIG||{},id=config.measurementId||'';
   const optOutKey='mongil-analytics-opt-out';
   let active=false;
-  const events=new Set(['page_view']);
+  const events=new Set(['page_view','png_save_clicked']);
   function editor(){return /\/sanctuary(?:\/|$)/i.test(location.pathname)?'sanctuary':/\/recipes(?:\/|$)/i.test(location.pathname)?'recipes':/\/calculator(?:\/|$)/i.test(location.pathname)?'calculator':/\/Statcal(?:\/|$)/i.test(location.pathname)?'detail':'party';}
   function optedOut(){try{return localStorage.getItem(optOutKey)==='1';}catch(_){return false;}}
   const browserOptOut=()=>navigator.globalPrivacyControl===true||navigator.doNotTrack==='1';
@@ -35,4 +35,9 @@
   window.gtag('config',id,{send_page_view:false,page_location:location.origin+location.pathname,page_referrer:referrer,page_title:document.title,allow_google_signals:false,allow_ad_personalization_signals:false,cookie_flags:'SameSite=Lax;Secure'});
   const script=document.createElement('script');script.async=true;script.src='https://www.googletagmanager.com/gtag/js?id='+encodeURIComponent(id);script.onerror=()=>{active=false;};document.head.appendChild(script);
   active=true;track('page_view');
+  // Capture the initial save-button click only; never inspect party data or export contents.
+  document.addEventListener('click',event=>{
+    const button=event.target?.closest?.('#btnSavePng');
+    if(button&&!button.disabled)track('png_save_clicked');
+  },true);
 })();
