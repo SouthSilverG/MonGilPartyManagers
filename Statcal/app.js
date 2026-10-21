@@ -1518,3 +1518,6 @@ renderContentBox();
 render();
 
 (function(){const key='mongil-editor-handoff';document.querySelectorAll('.app-sidebar a').forEach(a=>a.addEventListener('click',()=>{try{sessionStorage.setItem(key,buildPartyExportPayload());}catch(e){}}));try{const saved=sessionStorage.getItem(key);if(saved){sessionStorage.removeItem(key);sessionStorage.setItem('mongil-detail-restore',saved);applyImportedPartyPayload(saved);}}catch(e){}})();
+
+/* Share equipment inputs locally without altering existing PNG payloads. */
+(function(){const key='mongil_equipment_score_transfer_v1';const publish=()=>{try{localStorage.setItem(key,buildPartyExportPayload());}catch(_){}};const actions=document.querySelector('.toolbar__actions');if(actions){const b=document.createElement('button');b.type='button';b.className='btn-history';b.textContent='장비 부옵 점수 ↗';b.onclick=()=>{publish();window.open(new URL('equipment-score/index.html',document.baseURI).href,'_blank','noopener');};actions.appendChild(b);}let timer;document.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(publish,250);});document.addEventListener('change',publish);document.addEventListener('click',e=>{if(e.target.closest('[data-equipment-score-link]'))publish();});publish();})();
