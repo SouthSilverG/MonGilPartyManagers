@@ -5,7 +5,7 @@
  const positionWeights=[0,2083,1889,1724,1588,1334,1250,1177,1111,1053,935,874,819,772,730,660,629,600,574,551,510,485,462,442,423,395,380,366,353,341,322,282,273,264,256,244,237,230,224,218,209,191,186,181,176,170,166,162,158,154,149,139,136,133,130,126,123,121,118,116,113,107,104,102,100,98,96,94,92,91,89,85,83,81,80,78,77,76,74,73,72,69,68,67,65,64,63,62,61,60,59,57,56,56,55,54,53,52,51,51,49];
  const roleConversions={1:{from:'brawlerFlat',to:'brawl'},2:{from:'slayerFlat',to:'suppress'},3:{from:'destroyerFlat',to:'groggy'},4:{from:'supporterFlat',to:'support'}};
  const elements={1:'physical',2:'fire',3:'ice',4:'lightning',5:'wind',6:'earth'};
- const names={normal:'일반 몬스터 피해',cooldown:'특수 스킬 재사용 대기시간 감소',tagCooldown:'캐릭터 교체 재사용 대기시간 감소',physicalRes:'물리 속성 저항',fireRes:'불 속성 저항',iceRes:'얼음 속성 저항',windRes:'바람 속성 저항',lightningRes:'번개 속성 저항',earthRes:'땅 속성 저항',waterRes:'물 속성 저항',darkRes:'암흑 속성 저항',specialAtk:'특수 스킬 한정 공격력 증가',basicDamage:'기본 공격 피해',specialDamage:'특수 스킬 피해',ultimateDamage:'궁극 스킬 피해',tagDamage:'교체 스킬 피해',damageReduction:'받는 피해 감소',ultimateGauge:'궁극 스킬 충전율',roleFlat:'역할 특화',brawlerFlat:'난투',destroyerFlat:'파괴',slayerFlat:'암살',supporterFlat:'지원',atk:'공격력',def:'방어력',hp:'체력',crit:'치명타 확률',critDmg:'치명타 피해',penetration:'관통률',suppress:'제압 피해',groggy:'무력화 피해',weakness:'약점 속성 피해',boss:'보스 몬스터 피해',support:'지원 피해',brawl:'난전 피해',fire:'불 속성 피해',ice:'얼음 속성 피해',lightning:'번개 속성 피해',wind:'바람 속성 피해',earth:'땅 속성 피해',physical:'물리 속성 피해'};
+ const names={esdeBasicDamage:'예리도 강화 기본 공격 3단 피해',esdeSupportDamage:'예리도 지원 스킬 피해',windBasicDamage:'바람 속성 기본 공격 피해',windSpecialDamage:'바람 속성 특수 스킬 피해',windmillDamage:'윈드밀 킥 총 피해',nextSpecialDamage:'다음 특수 스킬 총 피해',highPunchDamage:'고속 펀치 피해',normal:'일반 몬스터 피해',cooldown:'특수 스킬 재사용 대기시간 감소',tagCooldown:'캐릭터 교체 재사용 대기시간 감소',physicalRes:'물리 속성 저항',fireRes:'불 속성 저항',iceRes:'얼음 속성 저항',windRes:'바람 속성 저항',lightningRes:'번개 속성 저항',earthRes:'땅 속성 저항',waterRes:'물 속성 저항',darkRes:'암흑 속성 저항',specialAtk:'특수 스킬 한정 공격력 증가',basicDamage:'기본 공격 피해',specialDamage:'특수 스킬 피해',ultimateDamage:'궁극 스킬 피해',tagDamage:'교체 스킬 피해',damageReduction:'받는 피해 감소',ultimateGauge:'궁극 스킬 충전율',roleFlat:'역할 특화',brawlerFlat:'난투',destroyerFlat:'파괴',slayerFlat:'암살',supporterFlat:'지원',atk:'공격력',def:'방어력',hp:'체력',crit:'치명타 확률',critDmg:'치명타 피해',penetration:'관통률',suppress:'제압 피해',groggy:'무력화 피해',weakness:'약점 속성 피해',boss:'보스 몬스터 피해',support:'지원 피해',brawl:'난전 피해',fire:'불 속성 피해',ice:'얼음 속성 피해',lightning:'번개 속성 피해',wind:'바람 속성 피해',earth:'땅 속성 피해',physical:'물리 속성 피해'};
  const plain=s=>String(s||'').replace(/<[^>]*>/g,'').replace(/\\n/g,'\n');
  function make(data){
   const T=data.tables,L=data.local,tableRows=new Map(),rows=n=>{if(!tableRows.has(n))tableRows.set(n,Object.values(T[n]||{}));return tableRows.get(n);},loc=k=>plain(L[k]||''),by=(n,f,v)=>rows(n).filter(r=>r[f]===v);
@@ -78,6 +78,7 @@
     if(aid===1100051&&deltas.some(d=>d.key==='critDmg'))targetElement=2;
     if(aid===1100042)targetRange=2;
     if(aid===1100031&&deltas.some(d=>d.key==='groggy'&&d.value<15))return; // strengthened state replaces its base state
+    if(aid===1100047)for(const d of deltas){if(d.key==='basicDamage')d.key='windBasicDamage';if(d.key==='specialDamage')d.key='windSpecialDamage';}
     if(aid===1100048)for(const c of conversions)if(c.to==='atk')c.to='specialAtk';
     found.push({...root,gid,team,targetElement,targetRange,deltas,conversions,maxStack:Math.max(1,...deltas.map(d=>d.stacks)),conditional:child||root.conditional,unsupported:false,label:'아티팩트 · '+loc(T.ITEM_CUBE[aid].ITEM_NAME_LOCAL)+(targetElement?' / '+names[elements[targetElement]]+' 캐릭터':'')});
    }
@@ -104,7 +105,7 @@
     const elm=character(s.character)?.ELEMENTAL_TYPE;if(elm&&!Object.hasOwn(d.sanctuaryLevels,elm))d.sanctuaryLevels[elm]=Math.max(...party.slots.map((x,j)=>character(x.character)?.ELEMENTAL_TYPE===elm?d.slots[j].sanctuary:0));
    });party.slots.forEach((s,i)=>{const elm=character(s.character)?.ELEMENTAL_TYPE;if(elm)d.slots[i].sanctuary=d.sanctuaryLevels[elm];});return d;
   }
-  function character(id){const cid=Number(data.maps.characters[id]);return [102501,104201,104301].includes(cid)?null:T.CHARACTER_LIST[cid]||null;}
+  function character(id){const cid=Number(data.maps.characters[id]);return [104201,104301].includes(cid)?null:T.CHARACTER_LIST[cid]||null;}
   function card(id,kind,grade){let first=T.ITEM_CARD[data.maps[kind][id]];if(!first)return null;return rows('ITEM_CARD').find(r=>r.MONSTER_ID===first.MONSTER_ID&&r.RARE_GRADE===grade)||first;}
   function optionKey(id,element){const k={trait_atk:'atk',trait_def:'def',trait_hp:'hp',trait_crit_rate:'crit',trait_crit_dmg:'critDmg',trait_support_dmg:'support',trait_suppress_dmg:'suppress',trait_brawl_dmg:'brawl',trait_incap_dmg:'groggy',trait_normal_monster_dmg:'normal',trait_skill_cd:'cooldown',trait_skill_cooldown:'cooldown',trait_boss_monster_dmg:'boss',trait_earth_res:'earthRes',trait_weak_dmg:'weakness',trait_weakness_dmg:'weakness',trait_physical_dmg:'physical',trait_fire_dmg:'fire',trait_ice_dmg:'ice',trait_wind_dmg:'wind',trait_lightning_dmg:'lightning',trait_earth_dmg:'earth'}[id];return k||null;}
   function primeOption(id,cardRow){const key=optionKey(id),code=Object.keys(fields).find(n=>fields[n]===key);if(!code||!cardRow)return null;const candidates=by('CARD_OPTION_GROUP','STATUS_GROUP',cardRow.CARD_STATUS_GROUP).filter(r=>r.STATUS_TYPE===Number(code)&&r.CARD_OPTION_RANK===5);const row=candidates[0];return row?{key,value:row.STATUS_VALUE/(key.endsWith('Flat')?1:100),row}:null;}
@@ -146,6 +147,22 @@
      verified.push([103409,'보니 · 고유 특성 / 악기 변경 후 5초 치확',{conditional:true}]);
      if(q.canto>=2)verified.push([103429,'보니 · 돌파 2 / 호른 연주 중 팀 치피 (5초)',{conditional:true,team:true}]);
     }
+    if(cid===102501){
+     replace([102508],102508,'클로에 · 궁극 후 고속 펀치 / 관통률');
+     replace([102510],102510,'클로에 · 하이 템포 / 특수 1·2단 또는 교체 후');
+     // Energy branches are alternatives: automatic mode assumes maximum energy, never their sum.
+     replace([102512,102513,102523,102524],102512,'클로에 · 윈드밀 킥 / 에너지 100%',{deltas:[{key:'windmillDamage',value:q.canto>=2?180:100}],remainder:['윈드밀 킥에만 적용. 에너지 50~99%: '+(q.canto>=2?50:20)+'%, 100%: '+(q.canto>=2?180:100)+'%. 서로 합산하지 않음.']});
+     if(q.canto>=4)verified.push([102516,'클로에 · 돌파 4 / 돌풍 적 방어력 감소',{conditional:true}]);
+     if(q.canto>=6)verified.push([102524,'클로에 · 돌파 6 / 다음 특수 스킬',{conditional:true,deltas:[{key:'nextSpecialDamage',value:150}],remainder:['에너지 50% 미만 80%, 50% 이상 150%. 자동 모드는 후자만 가정. 총 피해 배율은 일반 특수 피해와 합산하지 않음.']}]);
+    }
+    if(cid===103601)replace([103667],103667,'나기 · 신혹발현 / 비조작 전투 참여 후 22초, 자신 제외',{team:true,excludeOwner:true});
+    if(cid===103301){
+     verified.push([103305,'에스데 · 연막 안 / 공격력',{conditional:true}]);
+     for(const [gid,label,key] of [[103308,'예리도 소모 / 강화 기본 공격 3단','esdeBasicDamage'],[103309,'예리도 소모 / 지원 스킬','esdeSupportDamage'],[103317,'예리도 소모 / 궁극 스킬','ultimateDamage']]){
+      const p=parameters(gid,q.canto,q.skillLevel).find(p=>p.ABILITY_TYPE===1157);
+      replace([gid],gid,'에스데 · '+label,{deltas:[{key,value:(p?.PARAM_2||0)/100}],text:label+' 피해 '+((p?.PARAM_2||0)/100)+'% 증가 (예리도 1개 소모)'});
+     }
+    }
     if(cid===103301)verified.push([103319,'에스데 · 연막 / 바람 팀원 받는 피해 감소',{conditional:true,team:true,targetElement:5}]);
     if(cid===103801)verified.push([103818,'메이벨 · 스킬 / 받는 피해 감소',{conditional:true}]);
     // The skill action applies this team buff in the character asset, not ACTION_ABILITY_GROUP_ID.
@@ -173,7 +190,7 @@
     const excluded=new Set([...replacements,...verified.map(v=>v[0]),...(cid===101401?[101406,101435,101416,101418,101432,101433,101436,101437]:[]),...(cid===104001?[104003,104006,104007,104008,104009]:[]),...(cid===101901?[101929,101928,101938,101952,101954]:[])]);
     for(const e of linkedEffects(skillRoots,q.canto,q.skillLevel))if(!excluded.has(e.gid)&&!out.some(x=>x.owner===i&&x.gid===e.gid))out.push({...e,owner:i,key:i+':linked-'+e.gid,label:'패시브·교체·전투 스킬',conditional:true});
     const sanctuary=sanctuaryEffect(cid,q);if(sanctuary)out.push({...sanctuary,owner:i,key:i+':sanctuary-'+sanctuary.gid,label:'성소 해금 '+sanctuary.level+'레벨'});
-    for(const [id,r] of Object.entries(T.CHARACTER_CANTO))if(r.CHARACTER_ID===cid&&r.CANTO_LEVEL<=q.canto)for(const g of r.ABILITY_GROUP_ADD||[])if(g&&!verified.some(v=>v[0]===g))push(g,'canto-'+r.CANTO_LEVEL+'-'+g,'돌파 '+r.CANTO_LEVEL,{conditional:true});
+    for(const [id,r] of Object.entries(T.CHARACTER_CANTO))if(r.CHARACTER_ID===cid&&r.CANTO_LEVEL<=q.canto)for(const g of r.ABILITY_GROUP_ADD||[])if(g&&!verified.some(v=>v[0]===g)&&!out.some(e=>e.owner===i&&e.gid===g))push(g,'canto-'+r.CANTO_LEVEL+'-'+g,'돌파 '+r.CANTO_LEVEL,{conditional:true});
    });return out;
   }
   function stackInfo(gid,canto=0,level=1){
@@ -211,7 +228,7 @@
     return {selected:true,values:v,element:c.ELEMENTAL_TYPE,warnings,logs:[]};
    });
    let conversions=[];
-   for(const e of effects){let settings=detail.slots[e.owner].effects[e.key],active=detail.autoEffects?!e.unsupported:(settings?settings.on:!e.conditional&&!e.scopeUnverified);e.applied=false;e.appliedTo=[];e.appliedStacks=detail.autoEffects?e.maxStack:Math.min(e.maxStack,settings?.stacks||1);if(e.conditionCount&&party.slots.filter(s=>character(s.character)?.ELEMENTAL_TYPE===e.conditionCount.element).length<e.conditionCount.count)active=false;if(data.effectRules?.[e.gid]?.BUFF===2){e.enemy=true;continue;}if(!active)continue;if(detail.autoEffects&&e.exclusiveGroup&&effects.some(other=>other!==e&&other.exclusiveGroup===e.exclusiveGroup&&((other.deltas.find(d=>d.key==='atk')?.value||0)>(e.deltas.find(d=>d.key==='atk')?.value||0)||((other.deltas.find(d=>d.key==='atk')?.value||0)===(e.deltas.find(d=>d.key==='atk')?.value||0)&&other.owner<e.owner))))continue;if(!detail.autoEffects&&e.scopeUnverified&&!settings?.scope){missing.push(e.label+' 적용 대상 미확인');continue;}const team=e.team||(!detail.autoEffects&&settings?.scope==='team');const targets=(team?[0,1,2]:[e.owner]).filter(i=>result[i].selected&&(!e.targetElement||e.targetElement===result[i].element)&&(!e.excludeElement||e.excludeElement!==result[i].element)&&(!e.targetRange||character(party.slots[i].character)?.RANGE_TYPE===e.targetRange));e.appliedTo=targets;e.applied=targets.length>0;
+   for(const e of effects){let settings=detail.slots[e.owner].effects[e.key],active=detail.autoEffects?!e.unsupported:(settings?settings.on:!e.conditional&&!e.scopeUnverified);e.applied=false;e.appliedTo=[];e.appliedStacks=detail.autoEffects?e.maxStack:Math.min(e.maxStack,settings?.stacks||1);if(e.conditionCount&&party.slots.filter(s=>character(s.character)?.ELEMENTAL_TYPE===e.conditionCount.element).length<e.conditionCount.count)active=false;if(data.effectRules?.[e.gid]?.BUFF===2){e.enemy=true;continue;}if(!active)continue;if(detail.autoEffects&&e.exclusiveGroup&&effects.some(other=>other!==e&&other.exclusiveGroup===e.exclusiveGroup&&((other.deltas.find(d=>d.key==='atk')?.value||0)>(e.deltas.find(d=>d.key==='atk')?.value||0)||((other.deltas.find(d=>d.key==='atk')?.value||0)===(e.deltas.find(d=>d.key==='atk')?.value||0)&&other.owner<e.owner))))continue;if(!detail.autoEffects&&e.scopeUnverified&&!settings?.scope){missing.push(e.label+' 적용 대상 미확인');continue;}const team=e.team||(!detail.autoEffects&&settings?.scope==='team');const targets=(team?[0,1,2]:[e.owner]).filter(i=>result[i].selected&&(!e.excludeOwner||i!==e.owner)&&(!e.targetElement||e.targetElement===result[i].element)&&(!e.excludeElement||e.excludeElement!==result[i].element)&&(!e.targetRange||character(party.slots[i].character)?.RANGE_TYPE===e.targetRange));e.appliedTo=targets;e.applied=targets.length>0;
     for(const i of targets){if(!result[i].selected||(e.targetElement&&e.targetElement!==result[i].element))continue;let stacks=e.appliedStacks;for(const d of e.deltas){const ds=detail.autoEffects?(d.stacks||stacks):Math.min(d.stacks||stacks,stacks);result[i].values[d.key]=(result[i].values[d.key]||0)+d.value*ds;logs.push({slot:i,key:d.key,value:d.value*ds,label:e.label});}for(const conv of e.conversions)conversions.push({slot:i,...conv,owner:conv.sourceTarget?i:e.owner,label:e.label});if(e.unsupported)result[i].warnings.push('계산 미지원: '+e.title);}
    }
    // User-provided level weights: only the character's own role converts to damage.
