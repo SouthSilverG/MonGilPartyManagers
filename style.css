@@ -1319,3 +1319,6 @@ body {
 
 /* Original 5-star equipment icons over orange rarity plates. */
 .equip-slot img.equipment-icon--grade5,.modal__item img.equipment-icon--grade5{background:none;border:1px solid #d9a45a;box-shadow:inset 0 0 0 1px #ffd49033;object-fit:contain}
+
+/* Character guide equipment / monster recommendations. */
+.recommendation-note{display:block;margin-top:5px;color:#e7cd93;font-size:11px;line-height:1.45;white-space:normal}.modal__item--alternative{border-color:#a294bb;background:#282332}.modal__item--alternative .artifact-recommendation{background:#b5a5cc;color:#211a2b}
