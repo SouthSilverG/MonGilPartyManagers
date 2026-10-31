@@ -7,13 +7,21 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "천 년 묵은 고목",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "top"
+        ]
       },
       {
         "name": "만월의 밤",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "gloves",
+          "shoes"
+        ]
       }
     ],
     "legend": "레기눌라",
@@ -113,13 +121,21 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "만월의 밤",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "gloves",
+          "shoes"
+        ]
       },
       {
         "name": "미식가의 성대한 만찬",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "top"
+        ]
       }
     ],
     "legend": "레기눌라",
@@ -151,13 +167,21 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "천 년 묵은 고목",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "top"
+        ]
       },
       {
         "name": "만월의 밤",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "gloves",
+          "shoes"
+        ]
       }
     ],
     "legend": "레기눌라",
@@ -225,13 +249,21 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "천 년 묵은 고목",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "top"
+        ]
       },
       {
         "name": "군림하는 태산의 위엄",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "gloves",
+          "shoes"
+        ]
       }
     ],
     "legend": "레기눌라",
@@ -339,13 +371,21 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "숲의 폭군",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "top",
+          "gloves"
+        ]
       },
       {
         "name": "만개한 도화",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "shoes"
+        ]
       }
     ],
     "legend": "소린",
@@ -377,13 +417,21 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "숲의 폭군",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "top",
+          "gloves"
+        ]
       },
       {
         "name": "만개한 도화",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "shoes"
+        ]
       }
     ],
     "legend": "소린",
@@ -411,13 +459,21 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "숲의 폭군",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "top",
+          "gloves"
+        ]
       },
       {
         "name": "만개한 도화",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "shoes"
+        ]
       }
     ],
     "legend": "소린",
@@ -545,13 +601,23 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "정령왕",
         "pieces": 4,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "top",
+          "gloves",
+          "shoes"
+        ]
       },
       {
         "name": "군림하는 태산의 위엄",
         "pieces": 2,
         "note": "비고 참고",
-        "alternative": true
+        "alternative": true,
+        "parts": [
+          "top",
+          "gloves"
+        ]
       }
     ],
     "legend": "레기눌라",
@@ -583,13 +649,23 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "정령왕",
         "pieces": 4,
         "note": "메인 딜러",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "top",
+          "gloves",
+          "shoes"
+        ]
       },
       {
         "name": "요호의 투지",
         "pieces": 2,
         "note": "서포터",
-        "alternative": true
+        "alternative": true,
+        "parts": [
+          "gloves",
+          "shoes"
+        ]
       }
     ],
     "legend": "레기눌라",
@@ -877,13 +953,21 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "개전의 선봉대장",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "top",
+          "shoes"
+        ]
       },
       {
         "name": "천랑성",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "gloves"
+        ]
       }
     ],
     "legend": "레기눌라",
@@ -947,13 +1031,21 @@ const CHARACTER_GEAR_GUIDES = {
         "name": "개전의 선봉대장",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "top",
+          "shoes"
+        ]
       },
       {
         "name": "천랑성",
         "pieces": 2,
         "note": "",
-        "alternative": false
+        "alternative": false,
+        "parts": [
+          "hat",
+          "gloves"
+        ]
       }
     ],
     "legend": "레기눌라",
@@ -1030,11 +1122,11 @@ function guidePickerItems(items, entries) {
 }
 function equipmentPickerItems(characterId,part) {
   const guide=CHARACTER_GEAR_GUIDES[characterId];
-  return guidePickerItems(EQUIPMENT[part]||[],(guide?.equipment||[]).map(e=>({...e,note:[e.pieces+'세트',e.note].filter(Boolean).join(' · ')})));
+  return guidePickerItems(EQUIPMENT[part]||[],(guide?.equipment||[]).filter(e=>!e.parts||e.parts.includes(part)).map(e=>({...e,note:[e.pieces+'세트',e.note].filter(Boolean).join(' · ')})));
 }
 function monsterPickerItems(characterId,items,kind) {
   const guide=CHARACTER_GEAR_GUIDES[characterId];
-  const entries=!guide?[]:kind==='legend'?[{name:guide.legend,note:'전설 몬스터링'}]:[
+  const entries=!guide?[]:kind==='legend'?[{name:guide.legend,note:''}]:[
     ...guide.link.map(e=>({...e,note:'링크 체인'})),
     ...guide.sub.map(e=>({...e,note:'서브'}))
   ];
