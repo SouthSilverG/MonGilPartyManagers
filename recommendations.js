@@ -1122,7 +1122,7 @@ function guidePickerItems(items, entries) {
 }
 function equipmentPickerItems(characterId,part) {
   const guide=CHARACTER_GEAR_GUIDES[characterId];
-  return guidePickerItems(EQUIPMENT[part]||[],(guide?.equipment||[]).filter(e=>!e.parts||e.parts.includes(part)).map(e=>({...e,note:[e.pieces+'세트',e.note].filter(Boolean).join(' · ')})));
+  return guidePickerItems(EQUIPMENT[part]||[],(guide?.equipment||[]).filter(e=>!e.parts||e.parts.includes(part)).map(e=>({...e,note:e.pieces+'세트'})));
 }
 function monsterPickerItems(characterId,items,kind) {
   const guide=CHARACTER_GEAR_GUIDES[characterId];
