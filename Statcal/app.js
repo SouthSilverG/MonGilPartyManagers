@@ -487,9 +487,10 @@ function renderModalPage() {
       el.classList.add("modal__item--recommended");
       const badge = document.createElement("span");
       badge.className = "artifact-recommendation";
-      badge.textContent = "추천";
+      badge.textContent = item.recommendationLabel || "추천";
       el.appendChild(badge);
-      el.title = "선택한 캐릭터의 추천 아티팩트";
+      el.title = item.recommendationTitle || "선택한 캐릭터의 추천 아티팩트";
+      if (item.recommendationAlternative) el.classList.add("modal__item--alternative");
     }
 
     if (item.image) {
@@ -506,6 +507,10 @@ function renderModalPage() {
     const nameEl = document.createElement("div");
     nameEl.textContent = item.name;
     el.appendChild(nameEl);
+    if (item.recommendationNote) {
+      const note=document.createElement("small");note.className="recommendation-note";
+      note.textContent=item.recommendationNote;el.appendChild(note);
+    }
 
     el.addEventListener("click", () => {
       modalContext.onSelect(item.id);
@@ -589,7 +594,7 @@ function handleSlotClick(e) {
   } else if (action === "legend-monster") {
     openModal({
       title: "전설 몬스터링 선택",
-      items: LEGEND_MONSTERS,
+      items: monsterPickerItems(slot.character, LEGEND_MONSTERS, 'legend'),
       getSelectedIds: () => new Set(slot.legendMonster ? [slot.legendMonster] : []),
       onSelect: (id) => {
         slot.legendMonster = id;
@@ -601,7 +606,7 @@ function handleSlotClick(e) {
     const equipKey = target.dataset.equip;
     openModal({
       title: EQUIPMENT_LABELS[equipKey] + " 선택",
-      items: EQUIPMENT[equipKey],
+      items: equipmentPickerItems(slot.character, equipKey),
       onSelect: (id) => {
         slot.equipment[equipKey] = id;
         closeModal();
@@ -616,7 +621,7 @@ function handleSlotClick(e) {
     const ringKey = target.dataset.ring;
     openModal({
       title: RING_LABELS[ringKey] + " - 몬스터 선택",
-      items: MONSTERS.filter(x=>!LEGEND_ONLY_MONSTER_IDS.has(x.id)&&!LEGEND_MONSTERS.some(l=>l.name===x.name)),
+      items: monsterPickerItems(slot.character, MONSTERS.filter(x=>!LEGEND_ONLY_MONSTER_IDS.has(x.id)&&!LEGEND_MONSTERS.some(l=>l.name===x.name)), 'normal'),
       onSelect: (id) => {
         slot.ringMonsters[ringKey] = id;
         closeModal();
