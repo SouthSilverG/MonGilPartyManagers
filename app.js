@@ -1485,4 +1485,4 @@ renderContentBox();
 /* ---------- 초기 렌더 ---------- */
 render();
 
-(function(){const key='mongil-editor-handoff';document.querySelectorAll('.app-sidebar a').forEach(a=>a.addEventListener('click',()=>{try{sessionStorage.setItem(key,buildPartyExportPayload());}catch(e){}}));try{const saved=sessionStorage.getItem(key);if(saved){sessionStorage.removeItem(key);applyImportedPartyPayload(saved);}}catch(e){}})();
+(function(){const key='mongil-editor-handoff';document.addEventListener('click',event=>{if(!event.target.closest('.app-sidebar a'))return;try{sessionStorage.setItem(key,buildPartyExportPayload());}catch(e){}});try{const saved=sessionStorage.getItem(key);if(saved){sessionStorage.removeItem(key);applyImportedPartyPayload(saved);}}catch(e){}})();

@@ -7,6 +7,7 @@
  const elements={1:'physical',2:'fire',3:'ice',4:'lightning',5:'wind',6:'earth'};
  const names={esdeEnhancedBasicDamage:'강화 기본 공격 피해',esdeBasicDamage:'예리도 강화 기본 공격 3단 피해',esdeSupportDamage:'예리도 지원 스킬 피해',windBasicDamage:'바람 속성 기본 공격 피해',windSpecialDamage:'바람 속성 특수 스킬 피해',windmillDamage:'윈드밀 킥 총 피해',nextSpecialDamage:'다음 특수 스킬 총 피해',highPunchDamage:'고속 펀치 피해',normal:'일반 몬스터 피해',cooldown:'특수 스킬 재사용 대기시간 감소',tagCooldown:'캐릭터 교체 재사용 대기시간 감소',physicalRes:'물리 속성 저항',fireRes:'불 속성 저항',iceRes:'얼음 속성 저항',windRes:'바람 속성 저항',lightningRes:'번개 속성 저항',earthRes:'땅 속성 저항',waterRes:'물 속성 저항',darkRes:'암흑 속성 저항',specialAtk:'특수 스킬 한정 공격력 증가',basicDamage:'기본 공격 피해',specialDamage:'특수 스킬 피해',ultimateDamage:'궁극 스킬 피해',tagDamage:'교체 스킬 피해',damageReduction:'받는 피해 감소',ultimateGauge:'궁극 스킬 충전율',roleFlat:'역할 특화',brawlerFlat:'난투',destroyerFlat:'파괴',slayerFlat:'암살',supporterFlat:'지원',atk:'공격력',def:'방어력',hp:'체력',crit:'치명타 확률',critDmg:'치명타 피해',penetration:'관통률',suppress:'제압 피해',groggy:'무력화 피해',weakness:'약점 속성 피해',boss:'보스 몬스터 피해',support:'지원 피해',brawl:'난전 피해',fire:'불 속성 피해',ice:'얼음 속성 피해',lightning:'번개 속성 피해',wind:'바람 속성 피해',earth:'땅 속성 피해',physical:'물리 속성 피해'};
  const plain=s=>String(s||'').replace(/<[^>]*>/g,'').replace(/\\n/g,'\n');
+ Object.assign(names,{madDuckDamage:'오리 폭탄 총 피해',madSpecialTotalDamage:'매드 특수 스킬 총 피해',madIgnitedSkillDamage:'발화 대상 스킬 총 피해'});
  function make(data){
   const T=data.tables,L=data.local,tableRows=new Map(),rows=n=>{if(!tableRows.has(n))tableRows.set(n,Object.values(T[n]||{}));return tableRows.get(n);},loc=k=>plain(L[k]||''),by=(n,f,v)=>rows(n).filter(r=>r[f]===v);
   const cache=new Map(),parameterGroups=new Map(),cantoOverrides=new Map();
@@ -22,6 +23,7 @@
     p=override?{...p,...override}:p;
     const m=kind.match(/_P([1-6])/);
     if(m){let v=p['PARAM_'+m[1]];if(kind.includes('Skill_Type')||kind.endsWith('_S_T'))return ({0:'기본 공격',1:'특수 스킬',2:'궁극 스킬',3:'교체 스킬',7:'지원 스킬'})[v]||v;if(kind.includes('Elemental_Type'))return names[elements[v]]?.replace(' 속성 피해','')||v;if(kind.includes('Status_Type')||kind.endsWith('_Stat'))return names[fields[v]]||v;if(kind.endsWith('_R'))return v/(p.ABILITY_TYPE===1389&&m[1]==='2'?100000:100);if(kind.endsWith('_T'))return v/1000;return v;}
+    if(kind==='Ability_Elemental_Type')return names[elements[p.ELEMENTAL_TYPE]]?.replace(' 속성 피해','')||p.ELEMENTAL_TYPE;
     if(kind==='Ability_Max_Stack')return p.MAX_STACK;if(kind==='Ability_Tick')return p.TICK/1000;
    }
    if(/TIME$/i.test(kind)){let r=T.ITEM_ABILITY_GROUP[id]||T.SKILL_ABILITY_GROUP[id]||T.SYSTEM_ABILITY_GROUP[id];if(r)return r.TIME/1000;}
@@ -105,7 +107,7 @@
     const elm=character(s.character)?.ELEMENTAL_TYPE;if(elm&&!Object.hasOwn(d.sanctuaryLevels,elm))d.sanctuaryLevels[elm]=Math.max(...party.slots.map((x,j)=>character(x.character)?.ELEMENTAL_TYPE===elm?d.slots[j].sanctuary:0));
    });party.slots.forEach((s,i)=>{const elm=character(s.character)?.ELEMENTAL_TYPE;if(elm)d.slots[i].sanctuary=d.sanctuaryLevels[elm];});return d;
   }
-  function character(id){const cid=Number(data.maps.characters[id]);return [104201,104301].includes(cid)?null:T.CHARACTER_LIST[cid]||null;}
+  function character(id){const cid=Number(data.maps.characters[id]);return cid===104301?null:T.CHARACTER_LIST[cid]||null;}
   function card(id,kind,grade){let first=T.ITEM_CARD[data.maps[kind][id]];if(!first)return null;return rows('ITEM_CARD').find(r=>r.MONSTER_ID===first.MONSTER_ID&&r.RARE_GRADE===grade)||first;}
   function optionKey(id,element){const k={trait_atk:'atk',trait_def:'def',trait_hp:'hp',trait_crit_rate:'crit',trait_crit_dmg:'critDmg',trait_support_dmg:'support',trait_suppress_dmg:'suppress',trait_brawl_dmg:'brawl',trait_incap_dmg:'groggy',trait_normal_monster_dmg:'normal',trait_skill_cd:'cooldown',trait_skill_cooldown:'cooldown',trait_boss_monster_dmg:'boss',trait_earth_res:'earthRes',trait_weak_dmg:'weakness',trait_weakness_dmg:'weakness',trait_physical_dmg:'physical',trait_fire_dmg:'fire',trait_ice_dmg:'ice',trait_wind_dmg:'wind',trait_lightning_dmg:'lightning',trait_earth_dmg:'earth'}[id];return k||null;}
   function primeOption(id,cardRow){const key=optionKey(id),code=Object.keys(fields).find(n=>fields[n]===key);if(!code||!cardRow)return null;const candidates=by('CARD_OPTION_GROUP','STATUS_GROUP',cardRow.CARD_STATUS_GROUP).filter(r=>r.STATUS_TYPE===Number(code)&&r.CARD_OPTION_RANK===5);const row=candidates[0];return row?{key,value:row.STATUS_VALUE/(key.endsWith('Flat')?1:100),row}:null;}
@@ -113,8 +115,8 @@
    party.slots.forEach((s,i)=>{const c=character(s.character),q=detail.slots[i];if(!c)return;
     const push=(gid,key,label,forced={})=>{const e=compile(gid,q.canto,q.skillLevel);let targetElement=0;for(const [name,n] of [['물리',1],['불',2],['얼음',3],['번개',4],['바람',5],['땅',6]])if(new RegExp(name+'\\s*속성(?:인|의)?\\s*(?:캐릭터|팀원)').test(e.text))targetElement=n;if(/같은 속성/.test(e.text))targetElement=c.ELEMENTAL_TYPE;out.push({...e,owner:i,key:i+':'+key,label,targetElement,...forced});};
     const sets={};for(const id of Object.values(s.equipment)){const group=data.maps.equipmentSets?.[id];if(group)sets[group]=(sets[group]||0)+1;}for(const [group,count] of Object.entries(sets))for(const r of rows('EQUIP_SET'))if(r.SET_OPTION_GROUP===Number(group)&&r.SET_COUNT<=count)push(r.ITEM_ABILITY_GROUP,'set-'+r.ITEM_ABILITY_GROUP,'장비 '+r.SET_COUNT+'세트');
-    let a=T.ITEM_CUBE[data.maps.artifacts[s.artifact]],ov=a&&rows('CUBE_OVERLAP').find(r=>r.CUBE_ID===Number(data.maps.artifacts[s.artifact])&&r.OVERLAP_LEVEL===q.overlap);if(ov){push(ov.OPTION_VALUE,'artifact','아티팩트');for(const n of [3,5])if(q.overlap>=n&&ov['FUSION_VALUE_'+n])push(ov['FUSION_VALUE_'+n],'artifact-fusion-'+n,'아티팩트 결합 '+n+'단계',Number(data.maps.artifacts[s.artifact])===1100047?{ownerRole:1}:{});}
-    if(ov){out=out.filter(e=>e.key!==i+':artifact');for(const e of artifactEffects(Number(data.maps.artifacts[s.artifact]),ov,q))out.push({...e,ownerRole:Number(data.maps.artifacts[s.artifact])===1100047?1:0,owner:i,key:i+':artifact-node-'+e.gid});}
+    let a=T.ITEM_CUBE[data.maps.artifacts[s.artifact]],ov=a&&rows('CUBE_OVERLAP').find(r=>r.CUBE_ID===Number(data.maps.artifacts[s.artifact])&&r.OVERLAP_LEVEL===q.overlap);if(ov){push(ov.OPTION_VALUE,'artifact','아티팩트');for(const n of [3,5])if(q.overlap>=n&&ov['FUSION_VALUE_'+n])push(ov['FUSION_VALUE_'+n],'artifact-fusion-'+n,'아티팩트 결합 '+n+'단계',[1100047,1100052].includes(Number(data.maps.artifacts[s.artifact]))?{ownerRole:Number(data.maps.artifacts[s.artifact])===1100052?2:1}:{});}
+    if(ov){out=out.filter(e=>e.key!==i+':artifact');for(const e of artifactEffects(Number(data.maps.artifacts[s.artifact]),ov,q))out.push({...e,ownerRole:Number(data.maps.artifacts[s.artifact])===1100052?2:Number(data.maps.artifacts[s.artifact])===1100047?1:0,owner:i,key:i+':artifact-node-'+e.gid});}
     for(const rk of ['ring1','ring2','ring3']){let r=card(s.ringMonsters[rk],'monsters',q.ring[rk].grade);if(r)push(r.ABILITY_VALUE,rk,rk.replace('ring','몬스터링 '));}
     let legend=card(s.legendMonster,'legends',q.legend.grade);if(legend)for(const f of ['ABILITY_VALUE','ABILITY_LEGEND_01','ABILITY_LEGEND_02'])if(legend[f])push(legend[f],'legend-'+f,'전설 몬스터링');
     // Verified activation/target rules for the example party. Enhanced versions replace their base versions.
@@ -146,6 +148,15 @@
     if(cid===103401){
      verified.push([103409,'보니 · 고유 특성 / 악기 변경 후 5초 치확',{conditional:true}]);
      if(q.canto>=2)verified.push([103429,'보니 · 돌파 2 / 호른 연주 중 팀 치피 (5초)',{conditional:true,team:true}]);
+    }
+    if(cid===104201){
+     if(q.canto>=3)verified.push([10605,'매드 · 돌파 3 / 지원 스킬 피해',{title:'첫 번째 폭음',conditional:false,text:'지원 스킬 피해 6% 증가.'}]);
+     if(q.canto>=5)verified.push([10602,'매드 · 돌파 5 / 특수 스킬 피해',{title:'연쇄 폭발의 열기',conditional:false,text:'특수 스킬 피해 6% 증가.'}]);
+     if(q.canto>=3)verified.push([1042013,'매드 · 돌파 스킬 레벨 증가',{title:"돌파 스킬 레벨",conditional:false,unsupported:false,nonStat:true,deltas:[],maxStack:1,text:'기본·교체·특수·궁극 스킬 레벨 '+(q.canto>=5?4:2)+' 증가. 지원 스킬 피해 6%'+(q.canto>=5?', 특수 스킬 피해 6%':'')+'는 별도 돌파 스탯으로 반영합니다.',remainder:['스킬 레벨 증가는 직접 타격 계수에 대한 효과이며, 이 정적 스탯 에디터는 실제 타격 피해를 계산하지 않습니다.']}]);
+     if(q.canto>=1)verified.push([104225,'매드 · 돌파 1 / 오리 폭탄 적중 관통률 (10초)',{conditional:true}]);
+     if(q.canto>=2)verified.push([1042012,'매드 · 돌파 2 / 오리 폭탄 한정',{title:"타오르는 도화선",conditional:true,unsupported:false,deltas:[{key:'madDuckDamage',value:50}],maxStack:1,text:'급강하 오리 폭탄 6개·추적 오리 폭탄 4개 추가. 모든 급강하·추적 오리 폭탄 총 피해 50% 증가.',remainder:['오리 폭탄에만 적용. 일반 지원 피해에 합산하지 않으며 실제 폭탄 타수는 계산하지 않습니다.']}]);
+     if(q.canto>=4)verified.push([1042014,'매드 · 돌파 4 / 특수 스킬·연쇄 발화',{title:"멈출 줄 모르는 시한폭탄",conditional:true,unsupported:false,deltas:[{key:'madSpecialTotalDamage',value:50}],maxStack:1,text:'특수 스킬 총 피해 50% 증가. 연쇄 발화 지속시간 3초 증가, 추가 피해 비율 30%로 대체.',remainder:['특수 스킬 총 피해와 일반 특수 피해를 구분합니다. 추가 피해 30%는 스탯에 더하지 않습니다.']}]);
+     if(q.canto>=6)verified.push([1042016,'매드 · 돌파 6 / 발화 보유 적 대상',{title:"가장 찬란한 폭발",conditional:true,unsupported:false,deltas:[{key:'madIgnitedSkillDamage',value:50}],maxStack:1,text:'발화 보유 적에게 자신의 스킬 총 피해 50% 증가. 발화는 공격력 330% 지속 피해 및 적 받는 약점 속성 피해 12%로 강화.',remainder:['발화 대상 조건 가정. 330%는 추가타 계수, 12%는 적 디버프로 아군 스탯에 합산하지 않습니다.']}]);
     }
     if(cid===102501){
      replace([102508],102508,'클로에 · 궁극 후 고속 펀치 / 관통률');
@@ -197,7 +208,7 @@
     if(verified.length)for(const [gid,label,rules] of verified)push(gid,'skill-'+gid,label,rules);
     const skillRoots=rows('CHARACTER_SKILL_LEVEL').filter(r=>{const sk=T.CHARACTER_SKILL[r.SKILL_ID];return sk&&sk.SKILL_SET_ID===c.SKILL_SET_ID&&[1,2,3,4,7].includes(sk.SKILL_TYPE)&&sk.CANTO_LEVEL<=q.canto&&r.SKILL_LEVEL===q.skillLevel;}).flatMap(r=>r.ACTION_ABILITY_GROUP_ID||[]);
     const excluded=new Set([...replacements,...verified.map(v=>v[0]),...(cid===101401?[101406,101435,101416,101418,101432,101433,101436,101437]:[]),...(cid===104001?[104003,104006,104007,104008,104009]:[]),...(cid===101901?[101929,101928,101938,101952,101954]:[])]);
-    for(const e of linkedEffects(skillRoots,q.canto,q.skillLevel))if(!excluded.has(e.gid)&&!out.some(x=>x.owner===i&&x.gid===e.gid))out.push({...e,owner:i,key:i+':linked-'+e.gid,label:'패시브·교체·전투 스킬',conditional:true});
+    for(const e of cid===104201?[]:linkedEffects(skillRoots,q.canto,q.skillLevel))if(!excluded.has(e.gid)&&!out.some(x=>x.owner===i&&x.gid===e.gid))out.push({...e,owner:i,key:i+':linked-'+e.gid,label:'패시브·교체·전투 스킬',conditional:true});
     const sanctuary=sanctuaryEffect(cid,q);if(sanctuary)out.push({...sanctuary,owner:i,key:i+':sanctuary-'+sanctuary.gid,label:'성소 해금 '+sanctuary.level+'레벨'});
     for(const [id,r] of Object.entries(T.CHARACTER_CANTO))if(r.CHARACTER_ID===cid&&r.CANTO_LEVEL<=q.canto)for(const g of r.ABILITY_GROUP_ADD||[])if(g&&!verified.some(v=>v[0]===g)&&!out.some(e=>e.owner===i&&e.gid===g))push(g,'canto-'+r.CANTO_LEVEL+'-'+g,'돌파 '+r.CANTO_LEVEL,{conditional:true});
    });return out;
@@ -209,10 +220,10 @@
   function enemyNotes(party,detail){
    const notes=[];
    party.slots.forEach((slot,owner)=>{if(!character(slot.character))return;const q=detail.slots[owner];
-    const refs=[...(data.enemyReferences?.[slot.character]||[])];
+    const refs=[...(data.enemyReferences?.[slot.character]||[])];if(slot.character==='char_game_104201')for(const gid of [q.canto>=6?104216:104206,q.canto>=4?104229:104204])if(!refs.some(r=>r.gid===gid))refs.push({gid,minCanto:0,origins:['MAD skill/canto source']});
     // Include enemy nodes already reached from the selected equipment/skill graph too.
     for(const e of effectList({slots:[slot]}, {slots:[q]}))if(data.effectRules?.[e.gid]?.BUFF===2&&!refs.some(r=>r.gid===e.gid))refs.push({gid:e.gid,minCanto:0,origins:[e.label]});
-    for(const ref of refs){if(ref.minCanto>q.canto)continue;const e=compile(ref.gid,q.canto,q.skillLevel);if(!e.text||/\{\d+\}/.test(e.text))continue;
+    for(const ref of refs){if(ref.minCanto>q.canto)continue;if(slot.character==='char_game_104201'&&((ref.gid===104206&&q.canto>=6)||(ref.gid===104216&&q.canto<6)||(ref.gid===104204&&q.canto>=4)||(ref.gid===104229&&q.canto<4)))continue;const e=compile(ref.gid,q.canto,q.skillLevel);if(!e.text||/\{\d+\}/.test(e.text))continue;
      notes.push({owner,gid:ref.gid,title:e.title,text:e.text,origins:ref.origins,kind:'enemy',...stackInfo(ref.gid,q.canto,q.skillLevel)});
     }
    });return notes;

@@ -1,5 +1,6 @@
 /* User-supplied character guide recommendations. Display only; does not alter catalog IDs or saves. */
 const CHARACTER_GEAR_GUIDES = {
+"char_game_104201": {"name":"매드","equipment":[{"name":"만월의 밤","pieces":4,"note":"","alternative":false}],"legend":"레기눌라","link":[{"name":"두억시니","note":""},{"name":"이매망량","note":""}],"sub":[{"name":"얼음주먹 가이","note":""},{"name":"스카","note":""},{"name":"라그나돈","note":""}]},
   "char_vivian": {
     "name": "비비안",
     "equipment": [
