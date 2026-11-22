@@ -139,7 +139,16 @@
     if(cid===103501){replace([103503,103518],q.canto>=1?103518:103503,'엔젤 · 지원 후 교체 / 불 피해',{team:q.canto>=4});verified.push([10135,'엔젤 · 특수 스킬 / 피해 감소',{conditional:true}]);}
     if(cid===103701)verified.push([103731,'브리셸 · 기본 공격 사용 중 / 제압 피해→모든 속성 저항',{conditional:true}]);
     if(cid===103701){replace([103701,103706],q.canto>=6?103706:103701,'브리셸 · 관심 과부하');if(q.canto>=6)verified.push([103722,'브리셸 · 돌파 6 / 제압 피해 환산',{conditional:true}]);}
-    if(cid===103901){replace([103902,103919],q.canto>=6?103919:103902,'서머 베르나 · 불씨 / 최대 중첩');verified.push([103901,'서머 베르나 · 불타는 의지',{conditional:true}]);if(q.canto>=2)verified.push([103918,'서머 베르나 · 돌파 2 / 지원 피해',{conditional:true}]);}
+    if(cid===103901){replace([103902,103919],q.canto>=6?103919:103902,'서머 베르나 · 불씨 / 최대 중첩');verified.push([103901,'서머 베르나 · 불타는 의지',{conditional:true}]);if(q.canto>=2)verified.push([103918,'서머 베르나 · 돌파 2 / 지원 피해',{conditional:true}]);
+     if(q.canto>=6){
+      // 103912 stacks crit stats; 103913 grants its bonus once at maximum stacks.
+      const stackParams=parameters(103912,q.canto,q.skillLevel),maxStack=Math.max(1,...stackParams.map(p=>p.MAX_STACK||1));
+      const keys={1131:'critDmg',1111:'crit',1005:'atk',1395:'penetration'};
+      const deltas=stackParams.filter(p=>keys[p.ABILITY_TYPE]).map(p=>({key:keys[p.ABILITY_TYPE],value:p.PARAM_1/100}));
+      for(const p of parameters(103913,q.canto,q.skillLevel))if(keys[p.ABILITY_TYPE])deltas.push({key:keys[p.ABILITY_TYPE],value:p.PARAM_1/100,stacks:1,minStacks:maxStack});
+      replace([103912,103913],103912,'서머 베르나 · 돌파 6 / 불 적중 및 최대 중첩',{deltas,maxStack,team:false});
+     }
+    }
     // Verified C2 description references missing from the action-root graph.
     if(cid===100101&&q.canto>=2)verified.push([100104,'베르나 · 돌파 2 / 고유 특성 활성 중 치확',{conditional:true}]);
     if(cid===100201&&q.canto>=2)verified.push([100216,'클라우드 · 돌파 2 / 얼음 결정 획득 구간 해제 (12초)',{conditional:true}]);
@@ -249,7 +258,7 @@
    });
    let conversions=[];
    for(const e of effects){let settings=detail.slots[e.owner].effects[e.key],active=detail.autoEffects?!e.unsupported:(settings?settings.on:!e.conditional&&!e.scopeUnverified);e.applied=false;e.appliedTo=[];if(e.ownerRole&&character(party.slots[e.owner].character)?.STATUS_TYPE!==e.ownerRole)active=false;e.appliedStacks=detail.autoEffects?e.maxStack:Math.min(e.maxStack,settings?.stacks||1);if(e.conditionCount&&party.slots.filter(s=>character(s.character)?.ELEMENTAL_TYPE===e.conditionCount.element).length<e.conditionCount.count)active=false;if(data.effectRules?.[e.gid]?.BUFF===2){e.enemy=true;continue;}if(!active)continue;if(detail.autoEffects&&e.exclusiveGroup&&effects.some(other=>other!==e&&other.exclusiveGroup===e.exclusiveGroup&&((other.deltas.find(d=>d.key==='atk')?.value||0)>(e.deltas.find(d=>d.key==='atk')?.value||0)||((other.deltas.find(d=>d.key==='atk')?.value||0)===(e.deltas.find(d=>d.key==='atk')?.value||0)&&other.owner<e.owner))))continue;if(!detail.autoEffects&&e.scopeUnverified&&!settings?.scope){missing.push(e.label+' 적용 대상 미확인');continue;}const team=e.team||(!detail.autoEffects&&settings?.scope==='team');const targets=(team?[0,1,2]:[e.owner]).filter(i=>result[i].selected&&(!e.excludeOwner||i!==e.owner)&&(!e.targetElement||e.targetElement===result[i].element)&&(!e.excludeElement||e.excludeElement!==result[i].element)&&(!e.targetRange||character(party.slots[i].character)?.RANGE_TYPE===e.targetRange));e.appliedTo=targets;e.applied=targets.length>0;
-    for(const i of targets){if(!result[i].selected||(e.targetElement&&e.targetElement!==result[i].element))continue;let stacks=e.appliedStacks;for(const d of e.deltas){const ds=detail.autoEffects?(d.stacks||stacks):Math.min(d.stacks||stacks,stacks);result[i].values[d.key]=(result[i].values[d.key]||0)+d.value*ds;logs.push({slot:i,key:d.key,value:d.value*ds,label:e.label});}for(const conv of e.conversions)conversions.push({slot:i,...conv,owner:conv.sourceTarget?i:e.owner,label:e.label});if(e.unsupported)result[i].warnings.push('계산 미지원: '+e.title);}
+    for(const i of targets){if(!result[i].selected||(e.targetElement&&e.targetElement!==result[i].element))continue;let stacks=e.appliedStacks;for(const d of e.deltas){if(d.minStacks&&stacks<d.minStacks)continue;const ds=detail.autoEffects?(d.stacks||stacks):Math.min(d.stacks||stacks,stacks);result[i].values[d.key]=(result[i].values[d.key]||0)+d.value*ds;logs.push({slot:i,key:d.key,value:d.value*ds,label:e.label});}for(const conv of e.conversions)conversions.push({slot:i,...conv,owner:conv.sourceTarget?i:e.owner,label:e.label});if(e.unsupported)result[i].warnings.push('계산 미지원: '+e.title);}
    }
    // User-provided level weights: only the character's own role converts to damage.
    party.slots.forEach((s,i)=>{const c=character(s.character),conversion=c&&roleConversions[c.STATUS_TYPE],weight=positionWeights[detail.slots[i].level];if(result[i].selected&&conversion&&Number.isFinite(weight))conversions.push({slot:i,owner:i,...conversion,ratio:weight/10000,truncatePercent:true,cap:0,label:'역할 능력치 · '+detail.slots[i].level+'레벨 환산'});});
