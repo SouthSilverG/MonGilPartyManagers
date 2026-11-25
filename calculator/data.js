@@ -153,7 +153,8 @@ const SECTIONS = [
       "rewards": R({
         "memory": 10
       }),
-      "note": "시크릿 상자 1개·성장 재료 2개 및 별빛 답례는 환산 제외."
+      "secretBoxes": [{ "count": 1, "characterProbability": 0.1, "characterValue": "5성 픽업 캐릭터", "ticketKey": "destiny", "ticketCount": 25 }],
+      "note": "시크릿 상자: 프란시스: 서머 다이브! 1명 10% 또는 운명의 나침반 25개 90%. 확정 기억 10개 포함. 캐릭터 1명=90뽑 가정 시 기대 41.5뽑. 성장 재료·별빛 답례는 제외."
     },
     {
       "name": "[베르나: 서머 다이브!] 시크릿 팩",
@@ -163,7 +164,8 @@ const SECTIONS = [
       "rewards": R({
         "memory": 10
       }),
-      "note": "시크릿 상자 1개·성장 재료 2개 및 별빛 답례는 환산 제외."
+      "secretBoxes": [{ "count": 1, "characterProbability": 0.1, "characterValue": "5성 픽업 캐릭터", "ticketKey": "destiny", "ticketCount": 25 }],
+      "note": "시크릿 상자: 베르나: 서머 다이브! 1명 10% 또는 운명의 나침반 25개 90%. 확정 기억 10개 포함. 캐릭터 1명=90뽑 가정 시 기대 41.5뽑. 성장 재료·별빛 답례는 제외."
     },
     {
       "name": "운명의 나침반 시크릿 팩",

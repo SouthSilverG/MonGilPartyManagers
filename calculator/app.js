@@ -16,7 +16,7 @@ function calcTicketTotal(rewards) {
   const destiny = rewards.destiny || 0; // K
   const memory = rewards.memory || 0; // L
   const promise = rewards.promise || 0; // M
-  return ticketFromCrystal + ticketFromChoice + destiny + memory + promise; // 원본 G열
+  return ticketFromCrystal + ticketFromChoice + destiny + memory + promise + (rewards.characterPulls || 0); // 원본 G열
 }
 
 // 효율(%) = 티켓 총합 * 1뽑가격 / 가격. 가격이 없으면 계산 불가(null).
@@ -35,7 +35,21 @@ function luckyBoxRewards(item,mode='expected'){
   }
   return result;
 }
-function effectiveRewards(item){return addRewards(item.rewards||{},luckyBoxRewards(item));}
+// Character outcomes contribute pull-equivalent value, never fictitious compass tickets.
+function secretBoxRewards(item,mode='expected'){
+ let result={};
+ for(const box of item.secretBoxes||[]){
+  const character={characterPulls:CONFIG.CHOICE_PULL_VALUE[box.characterValue]||0},ticket={[box.ticketKey]:box.ticketCount};
+  let reward;
+  if(mode==='minimum'||mode==='maximum'){
+   const ordered=[character,ticket].sort((a,b)=>calcTicketTotal(a)-calcTicketTotal(b));reward=ordered[mode==='minimum'?0:1];
+  }else reward={characterPulls:character.characterPulls*box.characterProbability,[box.ticketKey]:box.ticketCount*(1-box.characterProbability)};
+  result=addRewards(result,Object.fromEntries(Object.entries(reward).map(([key,value])=>[key,value*box.count])));
+ }
+ return result;
+}
+function hasRandomRewards(item){return !!(item.luckyBoxes?.length||item.secretBoxes?.length);}
+function effectiveRewards(item,mode='expected'){return addRewards(addRewards(item.rewards||{},luckyBoxRewards(item,mode)),secretBoxRewards(item,mode));}
 function getEfficiencyTier(percent) {
   if (percent === null || percent === undefined || Number.isNaN(percent)) return null;
   for (const tier of CONFIG.EFFICIENCY_TIERS) {
@@ -51,6 +65,7 @@ function addRewards(a, b) {
     promise: (a.promise || 0) + (b.promise || 0),
     star: (a.star || 0) + (b.star || 0),
     crystal: (a.crystal || 0) + (b.crystal || 0),
+    characterPulls: (a.characterPulls || 0) + (b.characterPulls || 0),
     // 선택권은 합산 개념이 없어서, 그룹 안에 하나라도 있으면 참고용으로 표시만 함
     choice: a.choice || b.choice || null,
   };
@@ -257,10 +272,10 @@ function renderAll() {
       const tier = getEfficiencyTier(percent);
       const badge = document.createElement("span");
       badge.className = "eff-badge" + (tier ? ` ${tier.className}` : "");
-      badge.textContent = (item.luckyBoxes?'기댓값 ':'')+formatEfficiency(percent);
-      if(item.luckyBoxes){
-        const minimum=calcEfficiency(item.price,addRewards(item.rewards,luckyBoxRewards(item,'minimum')));
-        badge.title='최소 보장 효율 '+formatEfficiency(minimum)+' / 최대 '+formatEfficiency(calcEfficiency(item.price,addRewards(item.rewards,luckyBoxRewards(item,'maximum'))));
+      badge.textContent = (hasRandomRewards(item)?'기댓값 ':'')+formatEfficiency(percent);
+      if(hasRandomRewards(item)){
+        const minimum=calcEfficiency(item.price,effectiveRewards(item,'minimum'));
+        badge.title='최소 보장 효율 '+formatEfficiency(minimum)+' / 최대 '+formatEfficiency(calcEfficiency(item.price,effectiveRewards(item,'maximum')));
         const floor=document.createElement('small');floor.className='lucky-floor';floor.textContent='최소 '+formatEfficiency(minimum);effCell.appendChild(floor);
       }
       effCell.appendChild(badge);
@@ -334,7 +349,7 @@ function calcSelectedTotals(sections, getQuantity) {
       const qty=selectedQuantity(sections,si,ii,getQuantity);
       if(item.checkable!==false && qty>0){
         price+=(item.price||0)*qty;
-        const r=effectiveRewards(item);if(item.luckyBoxes?.length)hasExpected=true;
+        const r=effectiveRewards(item);if(hasRandomRewards(item))hasExpected=true;
         rewards=addRewards(rewards,Object.fromEntries(['destiny','memory','promise','star','crystal'].map(k=>[k,(r[k]||0)*qty])));
         pulls+=calcTicketTotal(r)*qty;
       }
